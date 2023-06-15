@@ -79,8 +79,8 @@ const int MAX_TBIN = pow(2,N_TBINS);
 //-----------------------------------------
 //#define LDA_SCHEME
 //#define N_SCHEME
-#define BLENDED
-
+//#define BLENDED
+#define Bx_SCHEME
 //-----------------------------------------
 /* set order of scheme (none for 2nd order) */
 //-----------------------------------------

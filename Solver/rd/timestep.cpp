@@ -6,16 +6,16 @@
 #include "triangle2D.h"
 #include "base.h"
 
-void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH){
+void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH , double P_DIFF){
         int TBIN;
         for(int j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
                 // printf("%i\n",j);
                 TBIN = RAND_MESH[j].get_tbin();
                 // printf("%i\t%i\t%i\n",TBIN_CURRENT,TBIN);
                 if(TBIN == 0){
-                        RAND_MESH[j].calculate_first_half(T,DT);
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[j].calculate_first_half(T,DT);
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF);
                 }
                 RAND_MESH[j].pass_update_half();
         }
@@ -80,14 +80,14 @@ void jump_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::
 }
 #endif
 
-void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH){
+void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF){
         int TBIN;
         for(int j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
                 TBIN = RAND_MESH[j].get_tbin();
                 if(TBIN == 0){
-                        RAND_MESH[j].calculate_second_half(T,DT);
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[j].calculate_second_half(T,DT);
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF);
                 }
                 RAND_MESH[j].pass_update();
         }
@@ -95,6 +95,7 @@ void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vect
 
 void reset_tbins(double T, double DT, int N_TRIANG, int N_POINTS, double &NEXT_DT, std::vector<TRIANGLE> &RAND_MESH, std::vector<VERTEX> &RAND_POINTS){
         double POSSIBLE_DT, MIN_DT;
+       	
         for(int j=0;j<N_TRIANG;++j){                                       // loop over all triangles in MESH
                 RAND_MESH[j].calculate_len_vel_contribution();             // calculate contribution from each edge TRIANGLE
         }
@@ -102,7 +103,7 @@ void reset_tbins(double T, double DT, int N_TRIANG, int N_POINTS, double &NEXT_D
         for(int i=0;i<N_POINTS;++i){                                       // loop over all vertices
                 POSSIBLE_DT = RAND_POINTS[i].calc_next_dt();               // calculate next timestep based on new state
                 //printf("%f\n",POSSIBLE_DT );
-                if(POSSIBLE_DT < NEXT_DT){NEXT_DT = POSSIBLE_DT;}
+                if(POSSIBLE_DT < NEXT_DT){NEXT_DT = POSSIBLE_DT;}              
                 RAND_POINTS[i].reset_len_vel_sum();
                 RAND_POINTS[i].set_tbin_local(MAX_TBIN);
         }

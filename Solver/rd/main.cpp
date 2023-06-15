@@ -194,14 +194,22 @@ int main(int ARGC, char *ARGV[]){
                 RAND_MESH[j].calculate_len_vel_contribution();             // calculate flux through TRIANGLE
         }
 
+	double P_MAX,P_MIN,POSSIBLE_P, P_DIFF;
+	P_MIN=10000000;
+	P_MAX=-100000000;
+	
         for(i=0; i<N_POINTS; ++i){
         	
                 NEXT_DT = RAND_POINTS[i].calc_next_dt();
+                POSSIBLE_P= RAND_POINTS[i].get_pressure();
                 //printf("%f\n",NEXT_DT  );      // check dt is min required by CFL
                 if(POSSIBLE_DT < NEXT_DT){NEXT_DT=POSSIBLE_DT;}
+                if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
+                if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
                 RAND_POINTS[i].reset_len_vel_sum();
                 }
-
+        P_DIFF=P_MAX-P_MIN;
+	//printf("P_DIFF=%f\n",P_DIFF);
         printf("Checking mesh size ...");
         printf("Mesh Size = %d\n",int(RAND_MESH.size()));
         printf("Evolving fluid ...\n");
@@ -235,7 +243,7 @@ int main(int ARGC, char *ARGV[]){
 
 #ifdef DRIFT
                 /****** Update residual for active bins (Drift method) ******/
-                drift_update_half(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH);
+                drift_update_half(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH,P_DIFF);
 #endif
 #ifdef JUMP
                 /****** Update residual for active bins (Jump method) ******/
@@ -251,7 +259,7 @@ int main(int ARGC, char *ARGV[]){
 #endif
                 /****** Update residual for all bins (No adaptive method) ******/
                 for(j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
-                        RAND_MESH[j].calculate_first_half(T,DT);                                                 // calculate flux through TRIANGLE
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF);                                        	// calculate flux through TRIANGLE
                         RAND_MESH[j].pass_update_half();
                 }
 #endif
@@ -259,18 +267,27 @@ int main(int ARGC, char *ARGV[]){
 #ifdef PARA_UP
                 #pragma omp parallel for
 #endif
+
+		P_MIN=10000000;
+		P_MAX=-100000000;
+	
                 for(i=0;i<N_POINTS;++i){                                       // loop over all vertices
                         RAND_POINTS[i].update_u_half();                        // update the half time state
                         RAND_POINTS[i].reset_du_half();                        // reset du value to zero for next timestep
                         RAND_POINTS[i].check_values_half();
                         RAND_POINTS[i].con_to_prim_half();
+                        POSSIBLE_P= RAND_POINTS[i].get_pressure_half();
+                       	
+                        if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
+                	if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
                 }
-
+                P_DIFF=P_MAX-P_MIN;
+		//printf("P_DIFF=%f\n",P_DIFF);
         /****** 2nd order update ***************************************************************************************************/
 
 #ifdef DRIFT
                 /****** Update residual for active bins (Drift method) ******/
-                drift_update(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH);
+                drift_update(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH,P_DIFF);
 #endif
 
 #if !defined(DRIFT) && !defined(JUMP)
@@ -279,7 +296,7 @@ int main(int ARGC, char *ARGV[]){
 #endif
                 /****** Update residual for all bins (No adaptive method) ******/
                 for(j=0;j<N_TRIANG;++j){                                       // loop over all triangles in MESH
-                        RAND_MESH[j].calculate_second_half(T,DT);             // calculate flux through TRIANGLE
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF);             // calculate flux through TRIANGLE
                         RAND_MESH[j].pass_update();
                 }
 #endif
@@ -289,13 +306,20 @@ int main(int ARGC, char *ARGV[]){
 #ifdef PARA_UP
                 #pragma omp parallel for
 #endif
+		P_MIN=10000000;
+		P_MAX=-100000000;
+	
                 for(i=0;i<N_POINTS;++i){                                       // loop over all vertices
                         RAND_POINTS[i].update_u_variables();                   // update the fluid state at vertex
                         RAND_POINTS[i].reset_du();                             // reset du value to zero for next timestep
                         RAND_POINTS[i].check_values();
                         RAND_POINTS[i].con_to_prim();                          // convert these to their corresponding conserved
+                        POSSIBLE_P= RAND_POINTS[i].get_pressure();
+                        if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
+                	if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
                 }
-
+		P_DIFF=P_MAX-P_MIN;
+		//printf("P_DIFF=%f\n",P_DIFF);
                 if(TBIN_CURRENT == 0){
                         reset_tbins(T, DT, N_TRIANG, N_POINTS, NEXT_DT, RAND_MESH, RAND_POINTS);
                 }

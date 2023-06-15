@@ -25,6 +25,8 @@
 */
 
 #include <iostream>
+#include <numeric>
+#include <cmath>
 
 #include "base.h"
 #include "inverse.h"
@@ -51,8 +53,8 @@ private:
         double U_N[4][3];
         double U_HALF[4][3];
 
-        double FLUC_LDA[4][3],FLUC_N[4][3],FLUC_B[4][3];
-        double FLUC_HALF_LDA[4][3],FLUC_HALF_N[4][3],FLUC_HALF_B[4][3];
+        double FLUC_LDA[4][3],FLUC_N[4][3],FLUC_B[4][3],FLUC_Bx[4][3];
+        double FLUC_HALF_LDA[4][3],FLUC_HALF_N[4][3],FLUC_HALF_B[4][3],FLUC_HALF_Bx[4][3];
 
         double PRESSURE[3], PRESSURE_HALF[3];
 
@@ -171,7 +173,7 @@ public:
         //**********************************************************************************************************************
 
         // Calculate first half timestep change, passing change to vertice
-        void calculate_first_half(double T, double DT){
+        void calculate_first_half(double T, double DT,double P_DIFF =0){
                 int i,j,m,p;
                 double INFLOW[4][4][3][3];
                 double C_SOUND[3];
@@ -427,7 +429,7 @@ public:
 
                 // Calculate spatial splitting for first half timestep
 
-#if defined(LDA_SCHEME) or defined(BLENDED)
+#if defined(LDA_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
 
 #ifdef DEBUG
                 std::cout << "BETA_0 =" << std::endl;
@@ -453,7 +455,7 @@ public:
 #endif
 
 
-#if defined(N_SCHEME) or defined(BLENDED)
+#if defined(N_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
                 double BRACKET[4][3];
                 double KZ_SUM[4];
 
@@ -515,6 +517,51 @@ public:
                 DUAL[0] = VERTEX_0->get_dual();
                 DUAL[1] = VERTEX_1->get_dual();
                 DUAL[2] = VERTEX_2->get_dual();
+                
+#ifdef Bx_SCHEME              
+             
+     		double  Xc, Yc;
+     		double interpol[3][5];
+     		double grad_p[2];
+     		
+     		
+     		Xc=std::accumulate(std::begin(X), std::end(X), 0);
+     		Yc=std::accumulate(std::begin(Y), std::end(Y), 0);
+     		Xc/=3;
+     		Yc/=3;
+     		
+     		cell_interpolation_N(interpol);
+     		
+             	grad_p[0]=interpol[0][4];
+             	grad_p[1]=interpol[1][4];
+             	
+             	double Vxc, Vyc,Vmag;
+             	
+             	Vxc=interpol[0][1]*Xc+interpol[1][1]*Yc+interpol[2][1];
+           	Vyc=interpol[0][2]*Xc+interpol[1][2]*Yc+interpol[2][2];
+             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
+             	
+             	double sc=0;
+             	double h=sqrt(4*AREA/3.1415);
+             	
+             	if(Vmag==0 ||P_DIFF==0){sc=0;}
+             	else{sc=(h/(Vmag*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	
+             	if (sc<0){sc=0;}
+             	if (sc>1){sc=1;}
+             
+             	
+             	double THETA=sc*sc*h;
+             	
+             	
+             	
+             	for(i=0;i<4;i++){
+                        FLUC_Bx[i][0] = THETA*FLUC_N[i][0] + (1 - THETA)*FLUC_LDA[i][0];
+                        FLUC_Bx[i][1] = THETA*FLUC_N[i][1] + (1 - THETA)*FLUC_LDA[i][1];
+                        FLUC_Bx[i][2] = THETA*FLUC_N[i][2] + (1 - THETA)*FLUC_LDA[i][2];
+                }
+             	
+#endif
 
 #ifdef LDA_SCHEME
                 for(i=0;i<4;i++){
@@ -541,6 +588,17 @@ public:
 
 #endif
 
+#ifdef Bx_SCHEME
+                for(i=0;i<4;i++){
+                        DU0_HALF[i] = -1.0*DT*FLUC_Bx[i][0]/DUAL[0];
+                        DU1_HALF[i] = -1.0*DT*FLUC_Bx[i][1]/DUAL[1];
+                        DU2_HALF[i] = -1.0*DT*FLUC_Bx[i][2]/DUAL[2];
+                }
+
+#endif
+
+
+
         }
 
         void pass_update_half(){
@@ -552,7 +610,7 @@ public:
         //**********************************************************************************************************************
 
 
-        void calculate_second_half(double T, double DT){
+        void calculate_second_half(double T, double DT, double P_DIFF =0){
                 int i,j,m,p;
                 double INFLOW[4][4][3][3];
 
@@ -783,7 +841,7 @@ public:
 
                 // std::cout << SECOND_FLUC_N[0][0] << "\t" << SECOND_FLUC_N[0][1] << "\t" << SECOND_FLUC_N[0][2] << std::endl;
 
-#if defined(LDA_SCHEME) or defined(BLENDED)
+#if defined(LDA_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
 
                 double PHI_HALF[4];
                 double SECOND_FLUC_LDA[4][3];
@@ -869,12 +927,11 @@ public:
                                 SECOND_FLUC_LDA[i][m] = SUM_MASS[i] + 0.5*(FLUC_LDA[i][m] + FLUC_HALF_LDA[i][m]);
                         }
                 }
-
                 // std::cout << "2nd half fluctiation (LDA) =\t" << SECOND_FLUC_LDA[0][0] << "\t" << SECOND_FLUC_LDA[0][1] << "\t" << SECOND_FLUC_LDA[0][2] << std::endl;
 
 #endif
 
-#if defined(N_SCHEME) or defined(BLENDED)
+#if defined(N_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
 
                 double INFLOW_MINUS_SUM[4][4];
                 double SECOND_FLUC_N[4][3];
@@ -994,6 +1051,62 @@ public:
                 }
 #endif
 
+
+#ifdef Bx_SCHEME              
+             
+     		double  Xc, Yc;
+     		double interpol[3][5];
+     		double interpol_new[3][5];
+     		double grad_p[2];
+     		
+     		
+     		Xc=std::accumulate(std::begin(X), std::end(X), 0);
+     		Yc=std::accumulate(std::begin(Y), std::end(Y), 0);
+     		Xc/=3;
+     		Yc/=3;
+     		
+     		cell_interpolation_N(interpol);
+     		cell_interpolation_HALF(interpol_new);
+     		
+     		
+             	grad_p[0]=interpol_new[0][4];
+             	grad_p[1]=interpol_new[1][4];
+             	
+             	double Vxc, Vyc, Vmag;
+             	
+             	Vxc=interpol_new[0][1]*Xc+interpol_new[1][1]*Yc+interpol_new[2][1];
+           	Vyc=interpol_new[0][2]*Xc+interpol_new[1][2]*Yc+interpol_new[2][2];
+             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
+             	double P_old=interpol[0][4]*Xc+interpol[1][4]*Yc+interpol[2][4];
+             	double P_half=interpol_new[0][4]*Xc+interpol_new[1][4]*Yc+interpol_new[2][4];
+             	
+             	double sc;
+             	double h=sqrt(4*AREA/3.1415);
+             	
+             	if(Vmag==0 ||P_DIFF==0){sc=0;}
+             	else{sc=(h/(Vmag*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	//printf("%f, %f,%f ",sc,P_half,P_old);
+             	if (sc<0){sc=0;}
+             	if (sc>1){sc=1;}
+             	
+             	
+             	
+             	double THETA=sc*sc*h;
+             	
+             	
+             	
+             	for(i=0;i<4;i++){
+                        FLUC_Bx[i][0] = THETA*SECOND_FLUC_N[i][0] + (1 - THETA)*SECOND_FLUC_LDA[i][0];
+                        FLUC_Bx[i][1] = THETA*SECOND_FLUC_N[i][1] + (1 - THETA)*SECOND_FLUC_LDA[i][1];
+                        FLUC_Bx[i][2] = THETA*SECOND_FLUC_N[i][2] + (1 - THETA)*SECOND_FLUC_LDA[i][2];
+                        
+                        DU0[i] = -1.0*DT*FLUC_Bx[i][0]/DUAL[0];
+                        DU1[i] = -1.0*DT*FLUC_Bx[i][1]/DUAL[1];
+                        DU2[i] = -1.0*DT*FLUC_Bx[i][2]/DUAL[2];
+                }
+             	
+#endif
+
         }
 
         void pass_update(){
@@ -1009,6 +1122,136 @@ public:
                 return AVG;
         }
 
+
+
+
+	void cell_interpolation_N(double (&coeff)[3][5]){
+	
+		double X1,X2,X3,Y1,Y2,Y3;
+		double U[3];
+		double A_inv[3][3];
+		double det_A;
+		//double coeff[3][5];
+	
+	
+	
+		X1 = X[0];
+                X2 = X[1];
+                X3 = X[2];
+
+                Y1 = Y[0];
+                Y2 = Y[1];
+                Y3 = Y[2];
+                
+                det_A=X1*(Y2-Y3)+X2*(Y3-Y1)+X3*(Y1-Y2);
+                
+		A_inv[0][0]=(Y2-Y3);
+		A_inv[0][1]=-(X2-X3);
+		A_inv[0][2]=(X2*Y3-X3*Y2);
+		
+		A_inv[1][0]=-(Y3-Y1);
+		A_inv[1][1]=(X1-X3);
+		A_inv[1][2]=-(X1*Y3-X3*Y1);
+		
+		A_inv[0][0]=(Y1-Y2);
+		A_inv[0][1]=-(X1-X2);
+		A_inv[0][2]=(X1*Y2-X2*Y1);
+		            
+		for (int i=0;i<5;i++){
+		
+			if (i==0){
+				for (int j=0;j<3;j++){
+                			U[j]=U_N[i][j];
+                		}
+			}
+			else if (i<=3){
+                		for (int j=0;j<3;j++){
+                			U[j]=U_N[i][j]/U_N[0][j];
+                		}
+                	}
+                
+                	else if (i==4){
+                		for (int j=0;j<3;j++){
+                			U[j]=PRESSURE[j];
+                		}
+                	}
+                
+		
+		
+			for (int j=0;j<3;j++){
+				coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
+			
+                	}
+		
+		}	
+                
+
+        	//return coeff;        
+	}
+	
+	
+	
+	void cell_interpolation_HALF(double (&coeff)[3][5]){
+	
+		double X1,X2,X3,Y1,Y2,Y3;
+		double U[3];
+		double A_inv[3][3];
+		double det_A;
+
+	
+	
+		X1 = X[0];
+                X2 = X[1];
+                X3 = X[2];
+
+                Y1 = Y[0];
+                Y2 = Y[1];
+                Y3 = Y[2];
+                
+                det_A=X1*(Y2-Y3)+X2*(Y3-Y1)+X3*(Y1-Y2);
+                
+		A_inv[0][0]=(Y2-Y3);
+		A_inv[0][1]=-(X2-X3);
+		A_inv[0][2]=(X2*Y3-X3*Y2);
+		
+		A_inv[1][0]=-(Y3-Y1);
+		A_inv[1][1]=(X1-X3);
+		A_inv[1][2]=-(X1*Y3-X3*Y1);
+		
+		A_inv[0][0]=(Y1-Y2);
+		A_inv[0][1]=-(X1-X2);
+		A_inv[0][2]=(X1*Y2-X2*Y1);
+		            
+		for (int i=0;i<5;i++){
+		
+			if (i==0){
+				for (int j=0;j<3;j++){
+                			U[j]=U_HALF[i][j];
+                		}
+			}
+			else if (i<=3){
+                		for (int j=0;j<3;j++){
+                			U[j]=U_HALF[i][j]/U_HALF[0][j];
+                		}
+                	}
+                
+                	else if (i==4){
+                		for (int j=0;j<3;j++){
+                			U[j]=PRESSURE_HALF[j];
+                		}
+                	}
+                
+		
+		
+			for (int j=0;j<3;j++){
+				coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
+			
+                	}
+		
+		}	       
+	}
+	
+	
         void setup_normals(){
                 // Calculate normals (just in first timestep for static grid)
 
@@ -1167,6 +1410,6 @@ public:
                 VERTEX_1 = VERTEX_2;
                 VERTEX_2 = TEMP_VERTEX;
 
-        }
-
+        }     
+       
 };

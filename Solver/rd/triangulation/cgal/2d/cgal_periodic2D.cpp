@@ -16,8 +16,8 @@ typedef PDT::Point                                          Point;
 typedef PDT::Iso_rectangle                                  Iso_rectangle;
 typedef PDT::Covering_sheets                                Covering_sheets;
 
-#define RANDOMIC
-// #define UNIFORMIC
+//#define RANDOMIC
+ #define UNIFORMIC
 // #define UNIFORMOFFSETIC
 // #define PERTUNIFORMOFFSETIC
 
@@ -29,7 +29,7 @@ int main(){
         std::list<Point> L;
 
         int i,j;
-        int nx=128, ny=128, count=nx*ny;
+        int nx=20, ny=20, count=nx*ny;
         float x,y,xmove,ymove;
 
 #ifdef RANDOMIC

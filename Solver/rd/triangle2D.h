@@ -173,7 +173,7 @@ public:
         //**********************************************************************************************************************
 
         // Calculate first half timestep change, passing change to vertice
-        void calculate_first_half(double T, double DT,double P_DIFF =0){
+        void calculate_first_half(double T, double DT,double P_DIFF =0, double Vmean=0,double V_DIFF=0){
                 int i,j,m,p;
                 double INFLOW[4][4][3][3];
                 double C_SOUND[3];
@@ -535,21 +535,28 @@ public:
              	grad_p[0]=interpol[0][4];
              	grad_p[1]=interpol[1][4];
              	
-             	double Vxc, Vyc,Vmag;
+             	double Vxc, Vyc,Vmag,dVx_dx,dVy_dy;
              	
              	Vxc=interpol[0][1]*Xc+interpol[1][1]*Yc+interpol[2][1];
            	Vyc=interpol[0][2]*Xc+interpol[1][2]*Yc+interpol[2][2];
              	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
              	
+             	dVx_dx=interpol[0][1];
+             	dVy_dy=interpol[1][2];
+             	
              	double sc=0;
              	double h=sqrt(4*AREA/3.1415);
              	
-             	if(Vmag==0 ||P_DIFF==0){sc=0;}
-             	else{sc=(h/(Vmag*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
-             	
+             	//if(Vmean==0 || P_DIFF==0){sc=1;}
+             	//else{sc=(h*h/(Vmean*P_DIFF))*((grad_p[0]*U)+(grad_p[1]*V));}
+             	if(V_DIFF==0){sc=0;}
+             	else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
+             	//else{sc=(-2/P_DIFF)*(grad_p[0]+grad_p[1]);}
+             	printf("SC1:%f,",sc);
+             	//sc=sqrt(sc*sc);
              	if (sc<0){sc=0;}
-             	if (sc>1){sc=1;}
-             
+             	//if (sc>1){sc=1;}
+             	
              	
              	double THETA=sc*sc*h;
              	
@@ -610,7 +617,7 @@ public:
         //**********************************************************************************************************************
 
 
-        void calculate_second_half(double T, double DT, double P_DIFF =0){
+        void calculate_second_half(double T, double DT, double P_DIFF =0, double Vmean=0, double V_DIFF=0){
                 int i,j,m,p;
                 double INFLOW[4][4][3][3];
 
@@ -1072,22 +1079,30 @@ public:
              	grad_p[0]=interpol_new[0][4];
              	grad_p[1]=interpol_new[1][4];
              	
-             	double Vxc, Vyc, Vmag;
+             	double Vxc, Vyc, Vmag,dVx_dx,dVy_dy;
              	
              	Vxc=interpol_new[0][1]*Xc+interpol_new[1][1]*Yc+interpol_new[2][1];
            	Vyc=interpol_new[0][2]*Xc+interpol_new[1][2]*Yc+interpol_new[2][2];
-             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
+             	
              	double P_old=interpol[0][4]*Xc+interpol[1][4]*Yc+interpol[2][4];
              	double P_half=interpol_new[0][4]*Xc+interpol_new[1][4]*Yc+interpol_new[2][4];
              	
              	double sc;
              	double h=sqrt(4*AREA/3.1415);
              	
-             	if(Vmag==0 ||P_DIFF==0){sc=0;}
-             	else{sc=(h/(Vmag*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	dVx_dx=interpol[0][1];
+             	dVy_dy=interpol[1][2];
+             	
+             	//if(Vmean==0 ||P_DIFF==0){sc=0;}
+             	//else{sc=(h*h/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*U)+(grad_p[1]*V));}
+             	if(V_DIFF==0){sc=0;}
+             	else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
+             	//else{sc=(-2/P_DIFF)*((P_half-P_old)/h +(grad_p[0]+grad_p[1]));}
              	//printf("%f, %f,%f ",sc,P_half,P_old);
+             	printf("SC2:%f\n",sc);
+             	//sc=sqrt(sc*sc);
              	if (sc<0){sc=0;}
-             	if (sc>1){sc=1;}
+             	//if (sc>1){sc=1;}
              	
              	
              	
@@ -1153,9 +1168,9 @@ public:
 		A_inv[1][1]=(X1-X3);
 		A_inv[1][2]=-(X1*Y3-X3*Y1);
 		
-		A_inv[0][0]=(Y1-Y2);
-		A_inv[0][1]=-(X1-X2);
-		A_inv[0][2]=(X1*Y2-X2*Y1);
+		A_inv[2][0]=(Y1-Y2);
+		A_inv[2][1]=-(X1-X2);
+		A_inv[2][2]=(X1*Y2-X2*Y1);
 		            
 		for (int i=0;i<5;i++){
 		
@@ -1218,9 +1233,9 @@ public:
 		A_inv[1][1]=(X1-X3);
 		A_inv[1][2]=-(X1*Y3-X3*Y1);
 		
-		A_inv[0][0]=(Y1-Y2);
-		A_inv[0][1]=-(X1-X2);
-		A_inv[0][2]=(X1*Y2-X2*Y1);
+		A_inv[2][0]=(Y1-Y2);
+		A_inv[2][1]=-(X1-X2);
+		A_inv[2][2]=(X1*Y2-X2*Y1);
 		            
 		for (int i=0;i<5;i++){
 		

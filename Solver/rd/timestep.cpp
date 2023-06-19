@@ -6,16 +6,16 @@
 #include "triangle2D.h"
 #include "base.h"
 
-void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH , double P_DIFF){
+void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH , double P_DIFF, double Vmean, double V_DIFF){
         int TBIN;
         for(int j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
                 // printf("%i\n",j);
                 TBIN = RAND_MESH[j].get_tbin();
                 // printf("%i\t%i\t%i\n",TBIN_CURRENT,TBIN);
                 if(TBIN == 0){
-                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF);
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,Vmean,V_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF);
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,Vmean,V_DIFF);
                 }
                 RAND_MESH[j].pass_update_half();
         }
@@ -80,14 +80,14 @@ void jump_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::
 }
 #endif
 
-void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF){
+void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double Vmean, double V_DIFF){
         int TBIN;
         for(int j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
                 TBIN = RAND_MESH[j].get_tbin();
                 if(TBIN == 0){
-                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF);
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF);
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
                 }
                 RAND_MESH[j].pass_update();
         }

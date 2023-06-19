@@ -1,0 +1,330 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{graphics}
+\usepackage{fullpage,epsf,graphicx}%, amstext,url} 
+
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+%
+%	This is a basic LaTeX Template for the TP/MP MSc Dissertation report
+
+\parindent=0pt          %  Switch off indent of paragraphs 
+\parskip=5pt            %  Put 5pt between each paragraph  
+
+%	This section generates a title page
+%       Edit only the sections indicated to put in the project title, and submission date
+
+\vspace*{0.1\textheight}
+
+\begin{center}
+        \huge{\bfseries Title of my Dissertation}\\ % Replace with the title of your dissertation!
+\end{center}
+
+\medskip
+
+\begin{center}
+        \Large{Daniel Rozo}\\  % Author of dissertation - replace with your name!
+        \medskip
+        \large{August 18, 2023}  % Submission date
+\end{center}
+
+%%% If necessary, reduce the number 0.4 below so the University Crest
+%%% and the words below it fit on the page.
+%%% Don't let the crest, or the wording below it, flow onto the next page!
+
+\vspace*{0.4\textheight}
+
+\begin{center}
+        \includegraphics[width=35mm]{Figures/crest.pdf}
+\end{center}
+
+\medskip
+
+\begin{center}
+
+%%%
+%%% Change Theoretical to Mathematical if appropriate
+%%%
+\large{
+  MSc in Theoretical Physics\\[0.8ex]
+  The University of Edinburgh\\[0.8ex]
+  2023
+}
+
+\end{center}
+
+\newpage
+
+
+\pagenumbering{roman}
+
+\begin{abstract}
+This is where you summarise the contents of your dissertation. It should be
+at least 100 words, but not more than 250 words.
+\end{abstract}
+
+\pagenumbering{roman}
+
+\begin{center}
+\textbf{Declaration}
+\end{center}
+
+I declare that this dissertation was composed entirely by myself.
+
+Chapters 2 and 3 provide an introduction to the subject area and a
+description of previous work on this topic. They do not contain
+original research.
+
+Chapter~4 describes work that was done entirely by me. The results of
+this chapter have been obtained previously by Anne T Matta of the
+University of Kinlochteuchter, but the methods used here are different
+in some important (or minor) ways.
+
+Chapters 4 through 6 contain my original work. The work described in
+Chapter~4 was done in collaboration with Professor Carole Ann O'Malley
+and her PhD student Jake O'Bean. Chapter~5 presents original work done
+entirely by me.
+
+\bigskip
+
+State whether calculations were done using Mathematica, Maple, MATLAB,
+SymPy, etc, with (or without) gamma-matrix manipulation code, master
+integrals, the Super-Duper software package, etc. In other words, you
+should refer to any software that you used during your project. For
+example, Monte Carlo simulation packages, hydrodynamics packages,
+measurement code, fitting code, tensor algebra and/or calculus packages,
+Feynman diagram evaluation packages, etc.
+
+State whether any software you used was written by you from scratch,
+by your supervisor (or by whoever), or if it's a standard package.
+
+\newpage
+
+\begin{center}
+\textbf{Personal Statement}
+\end{center}
+
+\emph{You \textbf{\emph{must}} include a Personal Statement in your
+  dissertation. This should describe what you did during the project,
+  and when you did it. Give an account of problems you faced and how
+  you attempted to overcome them. The examples below are based on
+  personal statements from MSc and MPhys projects in previous years,
+  with (mostly-obvious) changes to make them anonymous. }
+
+\subsubsection*{Example~1: an analytical project}
+
+The project began with an introduction to the spinor-helicity
+formalism in four dimensions, with my main source material being
+H. Elvang's “Scattering Amplitudes in Gauge Theory and Gravity” [1]. I
+read the first chapter, and acquainted myself with the formalism,
+and how it worked in a practical sense.
+
+Once I felt more comfortable with it, we moved onto the
+six-dimensional spinor-helicity formalism paper, where I spent some
+time gaining as strong an understanding of how the formalism worked,
+and proving identities.
+
+The next stage was to learn about the generalised unitarity procedure,
+with the end goal being to use it to calculate coefficients for some
+one loop integral, likely involving massive particles. Learning how
+this worked took some time, and proved to be some of the most
+difficult material for me to understand.
+
+It wasn't until later that we began to consider applying what I had
+learned to a Kaluza-Klein reduction, which ended up being the main
+focus of the project. It mixed well with the general theme of
+“extra-dimensional theory” the project began with, and allowed me to
+apply all that I'd learned and prepared for so far.  The vast majority
+of my remaining time was spent calculating coefficients for the scalar
+box contribution to the gluon-gluon to two-Kaluza-Klein-particle
+amplitude, overcoming a number of problems and errors, to finally have
+human-readable, and presentable results.
+
+During the course of the project, I met with my supervisor every week,
+in order to discuss my progress and the direction I would head
+next. Toward the end, the frequency of our meetings increased
+somewhat, as I began to finish my calculations.
+
+I started writing this dissertation in mid-July, and I spent the first
+three weeks of August working on it full-time.
+
+Overall, I feel that the project was a success, and I found it to be
+extremely enjoyable throughout.
+
+
+\subsubsection*{Example~2: a computational project}
+
+I spent the first 2 weeks of the project reading the material
+surrounding my project - mainly [1] and [2]. I also began to plan out
+how I would implement the algorithms in C++, in doing this I gained an
+understanding of what the main goals of the first half of my project
+would be and how they could be achieved. I identified which Monte
+Carlo observables would be useful to measure in these simulations.
+
+For the next 3 weeks I implemented the standard Atlantic City
+algorithm and debugged my code whilst developing analysis tools in
+python. I compared the results from my simulations to the results from
+[3] (for the Random Osculator) and [4] for the EvenMoreRandom
+Osculator. Having obtained positive results for the Random Osculator I
+started reading up on Heaviside Articulation. I examined how to
+integrate a Heaviside Articulator into the simulation in order to
+produce the most efficient simulation - the solution I decided on was
+to use a package called HeaviArt[5].
+
+Following this I began to integrate the Heaviside Articulator into my
+code and test it against the regular algorithm. In addition to this I
+ran longer simulations to verify my findings without Articulation.
+
+In mid July I finished implementing Heaviside Articulation into my
+code and began looking into how to quantify any improvement in speed
+gained by this algorithm. As July progressed I started looking into
+how to integrate the EvenMoreRandom Osculator into my code - this was
+the most complicated part of the project, as discussed in the body of
+this report. Despite much effort on my part, I couldn't get the
+results produced by the new algorithm to agree with the old
+ones. Following further study of the literature, and long discussions
+with Jack O'Bean, it turned out that the original form of Heaviside
+Articulation didn't applied to the EvenMoreRandom Osculator. With the
+help of Jack and my supervisor, I then developed the new version
+described in this report. I also did analytical calculations of the
+four-point blue function to two orders higher than had
+been published previously in the literature.
+
+For the final parts of the summer I worked mainly on perfecting the
+algorithm for the Random Osculator and implementing the EvenMoreRandom
+Osculators algorithm with the improved Heaviside Articulation. The
+final results were encouraging, but more work is clearly needed. To
+this end, I have been awarded a studentship by the British University
+of Lifelong Learning to extend this work during my PhD Studies at
+the non-existent Scottish Highlands Institute of Technology in
+Inveroxter.
+
+I started writing this dissertation in mid-July, and I spent the first
+three weeks of August working on it full-time.
+
+
+\subsubsection{Example~3: a more mathematical project}
+
+My first two weeks of work on the project consisted of building up a
+working knowledge of the algebraic structures and techniques which
+would be used in the main calculations which were to be carried out,
+in particular carefully reading up on the 11-dimensional case [1, 2],
+the general structure of the Spencer complex of the Poincar\'e
+superalgebra, the Clifford and exterior algebras over a Lorentzian
+vector space in general finite dimension and the relationship between
+them, the spin group, the Lorentz algebra $so(V$) and their vector and
+spinor representations. As a toy calculation, I computed the first two
+Spencer cohomology groups of the Poincar\'e algebra and its relevant
+subalgebras in order to find its filtered (sub)deformations, finding
+that these are given by a space of algebraic curvature operators. This
+calculation is vastly simplified compared to the superalgebra
+calculation owing to the lack of spinor structure.
+
+In the following two weeks, I turned to the particular case of 5
+dimensions, initially study- ing the quaternionic structure of the
+relevant Clifford algebra, its spinor representation and symplectic
+Majorana spinors. I read up on complex and quaternionic structures and
+representations, proved various identities for products of higher-rank
+gamma matrices found in [5] and derived the Fierz identity and various
+other useful identities involving quantities defined in terms of the
+Majorana spinors. I made an initial attempt to solve the relevant
+cocycle conditions, initially finding that the space of solutions was
+given by 3-forms (or Hodge-dually 2-forms), but from the known spinor
+connection in D = 5 supergravity we knew that there was a problem with
+the solution. Working with my supervisor to fix the errors in this
+calculation, finding the most efficient way of setting it out and
+writing up the work done so far and some of the background material
+took up the following two to three weeks.  Next, I moved on to
+figuring out the fundamentals of the geometric part of the project,
+understanding spin structures on manifolds, the spin lift of the
+Levi-Civita connection, the spinorial Lie derivative and the
+definition of the superconnection. I derived the flatness conditions
+for the curvature of the superconnection and showed that these
+conditions are sufficient to cause the Killing superalgebra to close
+and form a Lie superalgebra. This work, along with further writeup,
+took another two weeks.
+
+The final weeks of the project were spent learning about Lorentzian
+and Riemannian symmetric spaces, finding all of the the maximally
+supersymmetric backgrounds, on the way learning a little about the
+supersymmetric solutions of 5-dimensional supergravity, and finally
+finishing the dissertation.
+
+
+
+
+\newpage
+
+\begin{center}
+%\vspace*{2in}
+% an acknowledgements section is completely optional but if you decide
+% not to include it you should still include an empty {titlepage}
+% environment as this initialises things like section and page numbering.
+\textbf{Acknowledgements}
+\end{center}
+
+\emph{Put your acknowledgements here. Thanking your supervisor for
+his/her help is standard practice, but it's not compulsory \ldots}
+
+I'd like to thank my supervisor Professor Carole Ann O'Malley for
+making this project possible, and her PhD student Jack O'Bean for his
+patience and his detailed functional explanations of how classical
+symmetries can be broken by quantum effects. Thanks also to Wally Bee
+and Ken Garoo of the University of Woolloomooloo for sending me
+their hopping-parameter expansions.
+
+Finally, none of this would have been possible without financial
+support from Paterson's Lane Education Committee.
+
+\bigskip
+
+This document has its origins in the dissertation template for the MSc
+in High Performance Computing, which is apparently descended from a
+template developed by Professor Charles Duncan for MSc students in
+Meteorology. His acknowledgement follows:
+
+\emph{This template has been produced with help from many former
+  students who have shown different ways of doing things. Please make
+  suggestions for further improvements.}
+
+Some parts of this template were lifted unashamedly from the Edinburgh
+MPhys project report guide, with little or no modification. I have no
+idea who wrote the first version of that\ldots
+
+You don't have to use \LaTeX\ for your dissertation. You can use
+Microsoft Word, Apple Pages, LibreOffice (or similar) if you prefer,
+but it's \emph{much} easier to typeset equations in \LaTeX, and
+references look after themselves. Whatever you use, your dissertation
+should have the general structure of this template, and it should look
+similar -- especially the front page.
+
+\tableofcontents
+\listoftables
+\listoffigures
+
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\input{Chapters/Chapter_1}
+\chapter{Background theory and/or theory}
+\input{Chapters/Chapter_2}
+\chapter{Design and/or development (of my project)}
+\input{Chapters/Chapter_3}
+\chapter{Results and Analysis}
+\chapter{Conclusions}
+\appendix
+\chapter{Stuff that's too detailed}
+\include{Chapters/Appendix_A}
+
+
+
+
+
+\end{document}
+

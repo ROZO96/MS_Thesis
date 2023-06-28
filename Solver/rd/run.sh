@@ -7,7 +7,7 @@
 #clang++ -I /home/morton/local/include  -L /home/morton/local/lib -lopenblas -o lairds main.cpp
 # ./lairds
 
-g++ main.cpp -I /opt/OpenBLAS/include /opt/OpenBLAS/lib/libopenblas.a
+g++ -fopenmp main.cpp -I /opt/OpenBLAS/include /opt/OpenBLAS/lib/libopenblas.a
 ./a.out
 
 

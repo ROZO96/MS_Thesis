@@ -34,8 +34,8 @@ VERTEX setup_vertex(double X, double Y){
 #ifdef SODX
         // std::cout << "Using 1D Sod Shock Tube (Varied in X)" << std::endl;}
 
-        //if(X>0.25*SIDE_LENGTH_X and X<0.75*SIDE_LENGTH_X){
-        if(X<0.5*SIDE_LENGTH_X){
+        if(X>0.25*SIDE_LENGTH_X and X<0.75*SIDE_LENGTH_X){
+        //if(X<0.5*SIDE_LENGTH_X){
                 NEW_VERTEX.set_mass_density(1.0);                               // units kg/m^3
                 NEW_VERTEX.set_x_velocity(0.000000001);                       // units m/s
                 NEW_VERTEX.set_y_velocity(0.000000001);                       // units m/s

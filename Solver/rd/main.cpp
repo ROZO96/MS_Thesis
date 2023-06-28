@@ -54,6 +54,10 @@ int main(int ARGC, char *ARGV[]){
         printf("*********************************************************\n");
 
         printf("LAIRDS 2D\n");
+#if defined(_OPENMP) &&  defined(PARA_UP)
+  //omp_set_num_threads(12);
+  printf("Enters\n");
+#endif
 
 #ifdef LDA_SCHEME
         printf("Using LDA Scheme\n");
@@ -225,7 +229,7 @@ int main(int ARGC, char *ARGV[]){
         P_DIFF=P_MAX-P_MIN;
         V_DIFF=V_MAX-V_MIN;
         Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
-        printf("V_DIFF=%f\n",V_DIFF);
+        //printf("V_DIFF=%f\n",V_DIFF);
 	//printf("P_DIFF=%f\n",P_DIFF);
 	//printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
 	
@@ -253,6 +257,9 @@ int main(int ARGC, char *ARGV[]){
                 if(T >= NEXT_TIME){                                       // write out densities at given interval
                         write_snap(RAND_POINTS,T,DT,N_POINTS,SNAP_ID,LOGFILE);
                         write_active(RAND_MESH, N_TRIANG, SNAP_ID, TBIN_CURRENT);
+#if defined(BLENDED) or defined(Bx_SCHEME)
+			write_sc(RAND_MESH, N_TRIANG,SNAP_ID,T);
+#endif
                         NEXT_TIME = NEXT_TIME + T_TOT/float(N_SNAP);
                         if(NEXT_TIME > T_TOT){NEXT_TIME = T_TOT;}
                         SNAP_ID ++;
@@ -282,11 +289,6 @@ int main(int ARGC, char *ARGV[]){
                         RAND_MESH[j].pass_update_half();
                 }
 #endif
-
-#ifdef PARA_UP
-                #pragma omp parallel for
-#endif
-
 		P_MIN=10000000;
 		P_MAX=-100000000;
 		V_MIN=10000000;
@@ -294,6 +296,11 @@ int main(int ARGC, char *ARGV[]){
 		
 		Vmean_x=0;
 		Vmean_y=0;
+
+#ifdef PARA_UP
+                #pragma omp parallel for
+#endif
+
                 for(i=0;i<N_POINTS;++i){                                       // loop over all vertices
                         RAND_POINTS[i].update_u_half();                        // update the half time state
                         RAND_POINTS[i].reset_du_half();                        // reset du value to zero for next timestep
@@ -316,7 +323,7 @@ int main(int ARGC, char *ARGV[]){
                 V_DIFF=V_MAX-V_MIN;
                 Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
 		//printf("P_DIFF=%f\n",P_DIFF);
-		printf("V_DIFF=%f\n",V_DIFF);
+		//printf("V_DIFF=%f\n",V_DIFF);
 		//printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
         /****** 2nd order update ***************************************************************************************************/
 
@@ -337,16 +344,17 @@ int main(int ARGC, char *ARGV[]){
 #endif
 
                 sources(RAND_POINTS, DT, N_POINTS);
-
-#ifdef PARA_UP
-                #pragma omp parallel for
-#endif
-		P_MIN=10000000;
+                P_MIN=10000000;
 		P_MAX=-100000000;
 		V_MIN=10000000;
 		V_MAX=-100000000;
 		Vmean_x=0;
 		Vmean_y=0;
+
+
+#ifdef PARA_UP
+                #pragma omp parallel for
+#endif
 
                 for(i=0;i<N_POINTS;++i){                                       // loop over all vertices
                         RAND_POINTS[i].update_u_variables();                   // update the fluid state at vertex
@@ -367,8 +375,9 @@ int main(int ARGC, char *ARGV[]){
 		P_DIFF=P_MAX-P_MIN;
 		Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
 		V_DIFF=V_MAX-V_MIN;
+		
 		//printf("P_DIFF=%f\n",P_DIFF);
-		printf("V_DIFF=%f\n",V_DIFF);
+		//printf("V_DIFF=%f\n",V_DIFF);
 		//printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
                 if(TBIN_CURRENT == 0){
                         reset_tbins(T, DT, N_TRIANG, N_POINTS, NEXT_DT, RAND_MESH, RAND_POINTS);
@@ -386,6 +395,7 @@ int main(int ARGC, char *ARGV[]){
         }
 
         write_snap(RAND_POINTS,T,DT,N_POINTS,SNAP_ID,LOGFILE);
+        write_sc(RAND_MESH, N_TRIANG,SNAP_ID,T);
 
 
         return 0;

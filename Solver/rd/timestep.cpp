@@ -5,9 +5,13 @@
 #include <vector>
 #include "triangle2D.h"
 #include "base.h"
+#include <omp.h> 
 
 void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH , double P_DIFF, double Vmean, double V_DIFF){
         int TBIN;
+#ifdef PARA_UP
+                #pragma omp parallel for
+#endif
         for(int j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
                 // printf("%i\n",j);
                 TBIN = RAND_MESH[j].get_tbin();
@@ -82,9 +86,13 @@ void jump_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::
 
 void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double Vmean, double V_DIFF){
         int TBIN;
+#ifdef PARA_UP
+                #pragma omp parallel for
+#endif
         for(int j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
                 TBIN = RAND_MESH[j].get_tbin();
                 if(TBIN == 0){
+                	
                         RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
                         RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
@@ -92,6 +100,30 @@ void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vect
                 RAND_MESH[j].pass_update();
         }
 }
+/*
+void drift_update_iter(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double Vmean, double V_DIFF, long lo, long hi) {
+  long n = hi - lo;
+  if (n == 0) {
+    // do nothing
+  } else if (n == 1) {
+    TBIN = RAND_MESH[lo].get_tbin();
+                if(TBIN == 0){
+                	
+                        RAND_MESH[lo].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                }else if(TBIN_CURRENT % TBIN == 0){
+                        RAND_MESH[lo].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                }
+                RAND_MESH[lo].pass_update();
+  } else {
+    long mid = (lo + hi) / 2;
+    fork2([&] {
+      map_incr_rec(source, dest, lo, mid);
+    }, [&] {
+      map_incr_rec(source, dest, mid, hi);
+    });
+  }
+}
+*/
 
 void reset_tbins(double T, double DT, int N_TRIANG, int N_POINTS, double &NEXT_DT, std::vector<TRIANGLE> &RAND_MESH, std::vector<VERTEX> &RAND_POINTS){
         double POSSIBLE_DT, MIN_DT;

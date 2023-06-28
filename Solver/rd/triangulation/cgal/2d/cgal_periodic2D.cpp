@@ -29,7 +29,7 @@ int main(){
         std::list<Point> L;
 
         int i,j;
-        int nx=20, ny=20, count=nx*ny;
+        int nx=512, ny=512	, count=nx*ny;
         float x,y,xmove,ymove;
 
 #ifdef RANDOMIC

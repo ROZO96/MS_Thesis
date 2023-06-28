@@ -32,7 +32,7 @@ fig, ax = plt.subplots()
 #triang=mtri.Triangulation(val_x, val_y, triangles)
 triang= mtri.Triangulation(val_x, val_y)
 print(triang.triangles)
-ax.triplot(val_x, val_y,triangles,'o-',markersize=1,linewidth=0.5)
+ax.triplot(val_x, val_y,triangles,'o-',markersize=0.1,linewidth=0.5)
 ax.triplot(triang,'o-',markersize=1,linewidth=0.5)
 """
 for i in range(n_triangles):

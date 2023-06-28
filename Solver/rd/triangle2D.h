@@ -65,6 +65,8 @@ private:
         double DU0_HALF[4],DU1_HALF[4],DU2_HALF[4];
 
         double MAG[3];
+        
+        double SC;
 
         int PRINT;
 
@@ -78,6 +80,7 @@ public:
 
         void set_boundary(int NEW_BOUNDARY){BOUNDARY = NEW_BOUNDARY;}
         void set_tbin(    int NEW_TBIN){TBIN = NEW_TBIN;}
+        void set_sc(double NEW_SC){SC=NEW_SC;}
 
         int get_id(){return ID;}
 
@@ -87,7 +90,7 @@ public:
 
         int get_boundary(){return BOUNDARY;}
         int get_tbin(){ return TBIN;}
-
+	
         double get_un00(){
                 U_N[0][0] = VERTEX_0->get_u0();
                 return U_N[0][0];
@@ -100,6 +103,10 @@ public:
                 U_N[0][2] = VERTEX_2->get_u0();
                 return U_N[0][2];
         }
+        
+        double get_sc(){return SC;}
+        
+       
 
         void print_triangle_state(){
                 std::cout << "U[0] =\t" << U_N[0][0] << "\t" << U_N[0][1] << "\t" << U_N[0][2] << std::endl;
@@ -511,6 +518,7 @@ public:
                         FLUC_B[i][0] = THETA_E[i][i]*FLUC_N[i][0] + (IDENTITY[i][i] - THETA_E[i][i])*FLUC_LDA[i][0];
                         FLUC_B[i][1] = THETA_E[i][i]*FLUC_N[i][1] + (IDENTITY[i][i] - THETA_E[i][i])*FLUC_LDA[i][1];
                         FLUC_B[i][2] = THETA_E[i][i]*FLUC_N[i][2] + (IDENTITY[i][i] - THETA_E[i][i])*FLUC_LDA[i][2];
+                        if (i==0){set_sc(THETA_E[i][i]);}
                 }
 #endif
 
@@ -547,19 +555,19 @@ public:
              	double sc=0;
              	double h=sqrt(4*AREA/3.1415);
              	
-             	//if(Vmean==0 || P_DIFF==0){sc=1;}
-             	//else{sc=(h*h/(Vmean*P_DIFF))*((grad_p[0]*U)+(grad_p[1]*V));}
-             	if(V_DIFF==0){sc=0;}
-             	else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
+             	if(Vmean==0 || P_DIFF==0){sc=1;}
+             	else{sc=(1/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	//if(V_DIFF==0){sc=0;}
+             	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
              	//else{sc=(-2/P_DIFF)*(grad_p[0]+grad_p[1]);}
-             	printf("SC1:%f,",sc);
-             	//sc=sqrt(sc*sc);
+             	//printf("SC1:%f,",sc);
+             	
              	if (sc<0){sc=0;}
-             	//if (sc>1){sc=1;}
              	
              	
              	double THETA=sc*sc*h;
-             	
+             	if (THETA>1){THETA=1;}
+             	set_sc(THETA);
              	
              	
              	for(i=0;i<4;i++){
@@ -1051,7 +1059,8 @@ public:
                         FLUC_B[i][0] = THETA_E[i][i]*SECOND_FLUC_N[i][0] + (IDENTITY[i][i] - THETA_E[i][i])*SECOND_FLUC_LDA[i][0];
                         FLUC_B[i][1] = THETA_E[i][i]*SECOND_FLUC_N[i][1] + (IDENTITY[i][i] - THETA_E[i][i])*SECOND_FLUC_LDA[i][1];
                         FLUC_B[i][2] = THETA_E[i][i]*SECOND_FLUC_N[i][2] + (IDENTITY[i][i] - THETA_E[i][i])*SECOND_FLUC_LDA[i][2];
-
+			
+			if (i==0){set_sc(THETA_E[i][i]);}
                         DU0[i] = -1.0*DT*FLUC_B[i][0]/DUAL[0];
                         DU1[i] = -1.0*DT*FLUC_B[i][1]/DUAL[1];
                         DU2[i] = -1.0*DT*FLUC_B[i][2]/DUAL[2];
@@ -1093,21 +1102,22 @@ public:
              	dVx_dx=interpol[0][1];
              	dVy_dy=interpol[1][2];
              	
-             	//if(Vmean==0 ||P_DIFF==0){sc=0;}
-             	//else{sc=(h*h/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*U)+(grad_p[1]*V));}
-             	if(V_DIFF==0){sc=0;}
-             	else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
+             	if(Vmean==0 ||P_DIFF==0){sc=0;}
+             	else{sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	//if(V_DIFF==0){sc=0;}
+             	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
              	//else{sc=(-2/P_DIFF)*((P_half-P_old)/h +(grad_p[0]+grad_p[1]));}
              	//printf("%f, %f,%f ",sc,P_half,P_old);
-             	printf("SC2:%f\n",sc);
+             	//printf("SC2:%f\n",sc);
              	//sc=sqrt(sc*sc);
              	if (sc<0){sc=0;}
-             	//if (sc>1){sc=1;}
+
              	
              	
              	
              	double THETA=sc*sc*h;
-             	
+             	if (THETA>1){THETA=1;}
+             	set_sc(THETA);
              	
              	
              	for(i=0;i<4;i++){
@@ -1192,12 +1202,18 @@ public:
                 	}
                 
 		
-		
-			for (int j=0;j<3;j++){
-				coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
+			if (U[0]==U[1] && U[1]==U[2]){
+				coeff[0][i]=0;
+				coeff[1][i]=0;
+				coeff[2][i]=U[0];
 			
+			}
+			else{
+				for (int j=0;j<3;j++){
+					coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
+			
+                		}
                 	}
-		
 		}	
                 
 
@@ -1257,10 +1273,17 @@ public:
                 	}
                 
 		
-		
-			for (int j=0;j<3;j++){
-				coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
+			if (U[0]==U[1] && U[1]==U[2]){
+				coeff[0][i]=0;
+				coeff[1][i]=0;
+				coeff[2][i]=U[0];
 			
+			}
+			else{
+				for (int j=0;j<3;j++){
+					coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
+			
+                		}
                 	}
 		
 		}	       

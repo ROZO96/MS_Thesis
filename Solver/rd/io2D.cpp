@@ -16,9 +16,14 @@ void open_snap(std::ofstream &SNAPFILE, int i){
 }
 
 void open_active(std::ofstream &SNAPFILE, int i){
-        SNAPFILE.open("output/active_"+std::to_string(i)+".txt");
+        SNAPFILE.open(OUT_DIR+"active_"+std::to_string(i)+".txt");
         return;
 }
+
+void open_sc_file(std::ofstream &SNAPFILE, int i){
+        SNAPFILE.open(OUT_DIR+"sc_file_"+std::to_string(i)+".txt");
+        return;
+}	
 
 void write_snap(std::vector<VERTEX> POINTS, double T, double DT, int N_POINTS, int SNAP_ID, std::ofstream &LOGFILE){
         std::ofstream SNAPFILE;
@@ -58,6 +63,29 @@ void write_active(std::vector<TRIANGLE> MESH, int N_TRIANG, int SNAP_ID, int TBI
                 }
         }
 }
+
+
+void write_sc(std::vector<TRIANGLE> MESH, int N_TRIANG, int SNAP_ID, double T){
+	std::ofstream SNAPFILE;
+        SNAPFILE << std::setprecision(12);
+        double X0,X1,X2,Y0,Y1,Y2,SC;
+        open_sc_file(SNAPFILE, SNAP_ID);
+        SNAPFILE << N_TRIANG << "\t" << T << "\t" <<  std::endl;
+         for(int j=0;j<N_TRIANG;++j){
+                if(MESH[j].get_boundary() == 0){
+                        X0 = MESH[j].get_vertex_0()->get_x();
+                        X1 = MESH[j].get_vertex_1()->get_x();
+                        X2 = MESH[j].get_vertex_2()->get_x();
+                        Y0 = MESH[j].get_vertex_0()->get_y();
+                        Y1 = MESH[j].get_vertex_1()->get_y();
+                        Y2 = MESH[j].get_vertex_2()->get_y();
+                        SC = MESH[j].get_sc();
+                        // write         X        Y          TBIN
+                        SNAPFILE << X0 << "\t" << Y0 << "\t"  << X1 << "\t" << Y1 << "\t"  << X2 << "\t" << Y2 << "\t" << SC << "\t" << std::endl;
+		}
+	}
+}
+
 
 void read_parameter_file(int ARGC, char *ARGV[]){
         printf("Parameter file = %s\n", ARGV[1]);
@@ -209,6 +237,8 @@ TRIANGLE cgal_read_triangles_line(std::ifstream &CGAL_FILE, std::vector<VERTEX> 
 
         return NEW_TRIANGLE;
 }
+
+
 
 #endif
 

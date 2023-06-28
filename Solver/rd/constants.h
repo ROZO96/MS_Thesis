@@ -89,7 +89,7 @@ const int MAX_TBIN = pow(2,N_TBINS);
 // #define SELF_GRAVITY // !!! NOT PERIODIC !!!
 // #define ANALYTIC_GRAVITY
 // #define PARA_RES
-// #define PARA_UP
+ #define PARA_UP
 
 const double GRAV = 6.67e-11;
 const double MSOLAR = 1.989e+30;
@@ -98,7 +98,7 @@ const double M_LIM = 0.0001;    // change for different tests
 const double E_LIM = 0.0001;
 const double C_LIM = 0.0001;
 
-const std::string OUT_DIR = "output/";
+const std::string OUT_DIR = "Mesh_case/Case_7/Bx_Scheme/";
 const std::string LOG_DIR = OUT_DIR + "log.txt";
 
 // Sod Shock Tube (Varied in X)

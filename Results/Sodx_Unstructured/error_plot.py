@@ -107,9 +107,9 @@ for l in range(np.size(case)):
 		
 		if (j==0):
 			x,y=data[:,0],data[:,1]
-			h[l]=np.max(x)/np.size(x);
-			ind_2=np.where((y<np.max(y)) & (y>np.min(y)));
-
+			h[l]=np.max(x)/np.sqrt(np.size(x));
+			#ind_2=np.where((y<np.max(y)) & (y>np.min(y)));
+			ind_2=np.where(x>=1);
 			x=np.asarray([x[i] for i in ind_2]).flatten()
 			y=np.asarray([y[i] for i in ind_2]).flatten()
 
@@ -125,14 +125,16 @@ for l in range(np.size(case)):
 			data_u_intial=np.asarray([data[i,variables[k]] for i in ind_2]).flatten()
 			data_u.append(np.asarray([data_u_intial[i] for i in ind]).flatten())
 		data_u=np.array(data_u)
-		#error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1)/np.shape(data_u)[1])
-
+		#error=np.max(np.abs(data_u-exact_sol),axis=1)
 		error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
+		#error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
+		
+		
 		error_data[j,l]=error;
 		print('Done')
 ##------------------Error ploting and order of the error calculation----------------##
 def powlaw(x, a, b) :
-    return a * x**b
+    return a * (x**b)
 print('\n Creating Error Plot.....',end=' ')
 plt.rcParams.update({'font.size': 20})
 fig,ax=plt.subplots(figsize=(30,10),nrows=1,ncols=3)
@@ -141,13 +143,17 @@ order=np.zeros((np.size(scheme),np.size(variables)))
 for i in range(np.size(scheme)):
 	for j in range(np.size(variable_name)):
 		popt, pcov=curve_fit(powlaw, h, error_data[i,:,j], maxfev=2000)
+		z = np.polyfit(np.log(h), np.log(error_data[i,:,j]), 1)
+		print(z)
+		p = np.poly1d(z)
+
 		order[i,j]=popt[1]
 		ax[j].set_ylabel('Error '+ variable_name[j])
 		ax[j].set_xlabel(r'$h$')
 		ax[j].loglog(h,error_data[i,:,j],'.-',color=colors[i])
-		ax[j].loglog(h,powlaw(h,*popt),'--',color=colors[i],label=scheme[i])	
-		
-ax[-1].legend(loc='upper right')		
+		#ax[j].loglog(h,powlaw(h,*popt),'--',color=colors[i],label=scheme[i])	
+		ax[j].loglog(h,np.exp(p(np.log(h))),'--',color=colors[i],label=scheme[i])
+ax[-1].legend(loc='lower right')		
 plt.tight_layout()
 print('Done')
 plt.savefig('Error_plot.svg')

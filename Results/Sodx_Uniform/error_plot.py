@@ -126,8 +126,8 @@ for l in range(np.size(case)):
 			data_u.append(np.asarray([data_u_intial[i] for i in ind]).flatten())
 		data_u=np.array(data_u)
 		#error=np.max(np.abs(data_u-exact_sol),axis=1)
-		error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
-		#error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
+		#error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
+		error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
 		
 		
 		error_data[j,l]=error;

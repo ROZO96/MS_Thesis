@@ -552,17 +552,17 @@ public:
              	dVx_dx=interpol[0][1];
              	dVy_dy=interpol[1][2];
              	
-             	double sc=0;
+             	double sc;
              	double h=sqrt(4*AREA/3.1415);
              	
-             	if(Vmean==0 || P_DIFF==0){sc=1;}
-             	else{sc=(1/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	sc=(1/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));
+             	if (sc<0){sc=0;}
              	//if(V_DIFF==0){sc=0;}
              	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
              	//else{sc=(-2/P_DIFF)*(grad_p[0]+grad_p[1]);}
              	//printf("SC1:%f,",sc);
              	
-             	if (sc<0){sc=0;}
+             	
              	
              	
              	double THETA=sc*sc*h;
@@ -1102,15 +1102,15 @@ public:
              	dVx_dx=interpol[0][1];
              	dVy_dy=interpol[1][2];
              	
-             	if(Vmean==0 ||P_DIFF==0){sc=0;}
-             	else{sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*Vxc)+(grad_p[1]*Vyc));}
+             	sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*Vxc)+(grad_p[1]*Vyc));
+             	if (sc<0){sc=0;}
              	//if(V_DIFF==0){sc=0;}
              	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
              	//else{sc=(-2/P_DIFF)*((P_half-P_old)/h +(grad_p[0]+grad_p[1]));}
              	//printf("%f, %f,%f ",sc,P_half,P_old);
              	//printf("SC2:%f\n",sc);
              	//sc=sqrt(sc*sc);
-             	if (sc<0){sc=0;}
+             	
 
              	
              	

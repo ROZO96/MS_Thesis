@@ -98,7 +98,7 @@ const double M_LIM = 0.0001;    // change for different tests
 const double E_LIM = 0.0001;
 const double C_LIM = 0.0001;
 
-const std::string OUT_DIR = "Mesh_case/Case_7/Bx_Scheme/";
+const std::string OUT_DIR = "Mesh_case/Case_1/Bx_Scheme/";
 const std::string LOG_DIR = OUT_DIR + "log.txt";
 
 // Sod Shock Tube (Varied in X)

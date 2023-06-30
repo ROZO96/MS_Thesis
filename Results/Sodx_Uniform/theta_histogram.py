@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import sys
 import glob
+import os
 
 file_directory=sys.argv[1] 
-files_B=glob.glob(file_directory+"/B_Scheme/sc_file_*")
-files_Bx=glob.glob(file_directory+"/Bx_Scheme/sc_file_*")
+files_B=sorted(glob.glob(file_directory+"/B_Scheme/sc_file_*"),key=os.path.getmtime)
+files_Bx=sorted(glob.glob(file_directory+"/Bx_Scheme/sc_file_*"),key=os.path.getmtime)
 bins=np.linspace(0,1,11)
 labels=['B','Bx']
 fig,ax=plt.subplots()

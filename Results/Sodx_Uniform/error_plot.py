@@ -97,7 +97,7 @@ for l in range(np.size(case)):
 	for j in range(np.size(scheme)):
 		print('Scheme',scheme[j])
 		print('Reading result files....',end=' ')
-		file_f= open('Case_'+str(case[l])+'/'+scheme[j]+'_Scheme/snapshot_20.txt')
+		file_f= open('Case_'+str(case[l])+'/'+scheme[j]+'_Scheme/snapshot_10.txt')
 		lines=file_f.readlines();
 		n_point,t=int(lines[0].split()[0]),float(lines[0].split()[1]);
 		data=[]
@@ -126,8 +126,8 @@ for l in range(np.size(case)):
 			data_u.append(np.asarray([data_u_intial[i] for i in ind]).flatten())
 		data_u=np.array(data_u)
 		#error=np.max(np.abs(data_u-exact_sol),axis=1)
-		#error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
-		error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
+		error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
+		#error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
 		
 		
 		error_data[j,l]=error;
@@ -156,13 +156,13 @@ for i in range(np.size(scheme)):
 ax[-1].legend(loc='lower right')		
 plt.tight_layout()
 print('Done')
-plt.savefig('Error_plot.svg')
+plt.savefig('Error_plot_half.svg')
 print('Figure saved as Error_plot.svg in current directory'); 
 print('\n Table of results for order of error estimation')
 table_2=tabulate(np.c_[scheme,order],np.r_[np.array('Scheme'),variable_name], tablefmt="fancy_grid")
 print(table_2)
 
-with open('error_estimation_results.txt', 'w') as f:
+with open('error_estimation_results_half.txt', 'w') as f:
     f.write(table_2)
 print('Table saved as error_estimation_results.txt in current directory'); 
 		

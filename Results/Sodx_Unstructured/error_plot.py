@@ -108,10 +108,15 @@ for l in range(np.size(case)):
 		if (j==0):
 			x,y=data[:,0],data[:,1]
 			h[l]=np.max(x)/np.sqrt(np.size(x));
-			#ind_2=np.where((y<np.max(y)) & (y>np.min(y)));
+			
 			ind_2=np.where(x>=1);
 			x=np.asarray([x[i] for i in ind_2]).flatten()
 			y=np.asarray([y[i] for i in ind_2]).flatten()
+			
+			ind_3=np.where((y<1.05) & (y>0.95));
+			
+			x=np.asarray([x[i] for i in ind_3]).flatten()
+			y=np.asarray([y[i] for i in ind_3]).flatten()
 
 			ind = np.lexsort((y,x))
 
@@ -121,13 +126,15 @@ for l in range(np.size(case)):
 			exact_sol=sod_profile(x)
 		
 		data_u=[]
+		fig=plt.figure()
 		for k in range(np.size(variables)):
 			data_u_intial=np.asarray([data[i,variables[k]] for i in ind_2]).flatten()
+			data_u_intial=np.asarray([data_u_intial[i] for i in ind_3]).flatten()
 			data_u.append(np.asarray([data_u_intial[i] for i in ind]).flatten())
 		data_u=np.array(data_u)
 		#error=np.max(np.abs(data_u-exact_sol),axis=1)
-		error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
-		#error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
+		#error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
+		error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
 		
 		
 		error_data[j,l]=error;

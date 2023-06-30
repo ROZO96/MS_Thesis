@@ -231,7 +231,7 @@ int main(int ARGC, char *ARGV[]){
         Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
         //printf("V_DIFF=%f\n",V_DIFF);
 	//printf("P_DIFF=%f\n",P_DIFF);
-	//printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
+	printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
 	
         printf("Checking mesh size ...");
         printf("Mesh Size = %d\n",int(RAND_MESH.size()));
@@ -306,25 +306,26 @@ int main(int ARGC, char *ARGV[]){
                         RAND_POINTS[i].reset_du_half();                        // reset du value to zero for next timestep
                         RAND_POINTS[i].check_values_half();
                         RAND_POINTS[i].con_to_prim_half();
-                        //Vmean_x+=RAND_POINTS[i].get_x_velocity_half();
-                	//Vmean_y+=RAND_POINTS[i].get_y_velocity_half();
+                        Vmean_x+=RAND_POINTS[i].get_x_velocity_half();
+                	Vmean_y+=RAND_POINTS[i].get_y_velocity_half();
                 	
-                	Vmean_x=RAND_POINTS[i].get_x_velocity_half();
-                	Vmean_y=RAND_POINTS[i].get_y_velocity_half();
-                	V_MAG=sqrt(Vmean_x*Vmean_x+Vmean_y*Vmean_y);
+                	//Vmean_x=RAND_POINTS[i].get_x_velocity_half();
+                	//Vmean_y=RAND_POINTS[i].get_y_velocity_half();
+                	//V_MAG=sqrt(Vmean_x*Vmean_x+Vmean_y*Vmean_y);
+                	//V_MAG=RAND_POINTS[i].get_mass_density_half();
                         POSSIBLE_P= RAND_POINTS[i].get_pressure_half();
                        	
                         if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
                 	if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
-                	if(V_MAG>V_MAX){V_MAX=V_MAG;}
-                	if(V_MAG<V_MIN){V_MIN=V_MAG;}
+                	//if(V_MAG>V_MAX){V_MAX=V_MAG;}
+                	//if(V_MAG<V_MIN){V_MIN=V_MAG;}
                 }
                 P_DIFF=P_MAX-P_MIN;
                 V_DIFF=V_MAX-V_MIN;
                 Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
 		//printf("P_DIFF=%f\n",P_DIFF);
 		//printf("V_DIFF=%f\n",V_DIFF);
-		//printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
+		printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
         /****** 2nd order update ***************************************************************************************************/
 
 #ifdef DRIFT
@@ -361,10 +362,10 @@ int main(int ARGC, char *ARGV[]){
                         RAND_POINTS[i].reset_du();                             // reset du value to zero for next timestep
                         RAND_POINTS[i].check_values();
                         RAND_POINTS[i].con_to_prim();                          // convert these to their corresponding conserved
-                        //Vmean_x+=RAND_POINTS[i].get_x_velocity();
-                	//Vmean_y+=RAND_POINTS[i].get_y_velocity();
-                	Vmean_x=RAND_POINTS[i].get_x_velocity();
-                	Vmean_y=RAND_POINTS[i].get_y_velocity();
+                        Vmean_x+=RAND_POINTS[i].get_x_velocity();
+                	Vmean_y+=RAND_POINTS[i].get_y_velocity();
+                	//Vmean_x=RAND_POINTS[i].get_x_velocity();
+                	//Vmean_y=RAND_POINTS[i].get_y_velocity();
                 	V_MAG=sqrt(Vmean_x*Vmean_x+Vmean_y*Vmean_y);
                         POSSIBLE_P= RAND_POINTS[i].get_pressure();
                         if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}

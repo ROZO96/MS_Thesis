@@ -530,7 +530,8 @@ public:
              
      		double  Xc, Yc;
      		double interpol[3][5];
-     		double grad_p[2];
+     		double grad_p[2]={0,0};
+     		double grad_rho[2]={0,0};
      		
      		
      		Xc=std::accumulate(std::begin(X), std::end(X), 0);
@@ -540,22 +541,39 @@ public:
      		
      		cell_interpolation_N(interpol);
      		
-             	grad_p[0]=interpol[0][4];
-             	grad_p[1]=interpol[1][4];
+             	//grad_p[0]=interpol[0][4];
+             	//grad_p[1]=interpol[1][4];
              	
              	double Vxc, Vyc,Vmag,dVx_dx,dVy_dy;
              	
-             	Vxc=interpol[0][1]*Xc+interpol[1][1]*Yc+interpol[2][1];
-           	Vyc=interpol[0][2]*Xc+interpol[1][2]*Yc+interpol[2][2];
-             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
+             	//Vxc=interpol[0][1]*Xc+interpol[1][1]*Yc+interpol[2][1];
+           	//Vyc=interpol[0][2]*Xc+interpol[1][2]*Yc+interpol[2][2];
+             	
              	
              	dVx_dx=interpol[0][1];
              	dVy_dy=interpol[1][2];
              	
              	double sc;
-             	double h=sqrt(4*AREA/3.1415);
+             	double h=sqrt(4*AREA/3.141592);
              	
-             	sc=(1/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));
+             	
+             	for (i=0;i<3;i++){
+             	grad_p[0]+=PRESSURE[i]*NORMAL[i][0]*MAG[i]/(2*AREA);
+             	grad_p[1]+=PRESSURE[i]*NORMAL[i][1]*MAG[i]/(2*AREA);
+             	grad_rho[0]+=U_N[0][i]*NORMAL[i][0]*MAG[i]/(2*AREA);
+             	grad_rho[1]+=U_N[0][i]*NORMAL[i][1]*MAG[i]/(2*AREA);
+                Vxc+=U_N[1][i]/(3*U_N[0][i]);
+             	Vyc+=U_N[2][i]/(3*U_N[0][i]);}
+             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
+             	
+             	
+             	//sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));
+             	sc=(1/(Vmean*P_DIFF))*((grad_p[0])*Vxc+(grad_p[1])*Vyc) +(1/(Vmag*(1-0.125)))*((grad_rho[0])*Vxc+(grad_rho[1])*Vyc) ;
+             	
+             	/*
+             	if (abs(Vmean)<0.0001){sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));}
+             	else{sc=(sqrt(h)/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));} */
+             	//sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);
              	if (sc<0){sc=0;}
              	//if(V_DIFF==0){sc=0;}
              	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
@@ -564,8 +582,9 @@ public:
              	
              	
              	
-             	
              	double THETA=sc*sc*h;
+             	//if (THETA>1){printf("%f",THETA);}
+             	
              	if (THETA>1){THETA=1;}
              	set_sc(THETA);
              	
@@ -1073,8 +1092,8 @@ public:
      		double  Xc, Yc;
      		double interpol[3][5];
      		double interpol_new[3][5];
-     		double grad_p[2];
-     		
+     		double grad_p[2]={0,0};
+     		double grad_rho[2]={0,0};
      		
      		Xc=std::accumulate(std::begin(X), std::end(X), 0);
      		Yc=std::accumulate(std::begin(Y), std::end(Y), 0);
@@ -1085,24 +1104,66 @@ public:
      		cell_interpolation_HALF(interpol_new);
      		
      		
-             	grad_p[0]=interpol_new[0][4];
-             	grad_p[1]=interpol_new[1][4];
+             	//grad_p[0]=interpol_new[0][4];
+             	//grad_p[1]=interpol_new[1][4];
              	
-             	double Vxc, Vyc, Vmag,dVx_dx,dVy_dy;
              	
-             	Vxc=interpol_new[0][1]*Xc+interpol_new[1][1]*Yc+interpol_new[2][1];
-           	Vyc=interpol_new[0][2]*Xc+interpol_new[1][2]*Yc+interpol_new[2][2];
              	
-             	double P_old=interpol[0][4]*Xc+interpol[1][4]*Yc+interpol[2][4];
-             	double P_half=interpol_new[0][4]*Xc+interpol_new[1][4]*Yc+interpol_new[2][4];
+             	double Vxc=0, Vyc=0, Vmag,dVx_dx,dVy_dy;
+             	
+           	//Vxc=interpol_new[0][1]*Xc+interpol_new[1][1]*Yc+interpol_new[2][1];
+           	//Vyc=interpol_new[0][2]*Xc+interpol_new[1][2]*Yc+interpol_new[2][2];
+           	
+             	
+             	//double P_old=interpol[0][4]*Xc+interpol[1][4]*Yc+interpol[2][4];
+             	//double P_half=interpol_new[0][4]*Xc+interpol_new[1][4]*Yc+interpol_new[2][4];
+             	double P_old=0;
+             	double P_half=0;
+             	double rho_old=0;
+             	double rho_half=0;
              	
              	double sc;
-             	double h=sqrt(4*AREA/3.1415);
+             	double h=sqrt(4*AREA/3.141592);
              	
              	dVx_dx=interpol[0][1];
              	dVy_dy=interpol[1][2];
              	
-             	sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*Vxc)+(grad_p[1]*Vyc));
+             	
+             	for (i=0;i<3;i++){
+             	grad_p[0]+=PRESSURE_HALF[i]*NORMAL[i][0]*MAG[i]/(2*AREA);
+             	grad_p[1]+=PRESSURE_HALF[i]*NORMAL[i][1]*MAG[i]/(2*AREA);
+             	grad_rho[0]+=U_HALF[0][i]*NORMAL[i][0]*MAG[i]/(2*AREA);
+             	grad_rho[1]+=U_HALF[0][i]*NORMAL[i][1]*MAG[i]/(2*AREA);
+             	Vxc+=U_HALF[1][i]/(3*U_HALF[0][i]);
+             	Vyc+=U_HALF[2][i]/(3*U_HALF[0][i]);
+             	
+             	P_old+=PRESSURE[i]/3;
+             	P_half+=PRESSURE_HALF[i]/3;
+             	rho_old+=U_N[0][i]/3;
+             	rho_half+=U_HALF[0][i]/3;
+             	}
+             	
+             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
+             	
+             	
+             
+             	//sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));
+             	
+             	sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0])*Vxc+(grad_p[1])*Vyc)+(1/(Vmean*(1-0.125)))*(((rho_half-rho_old)/DT)+(grad_rho[0])*Vxc+(grad_rho[1])*Vyc) ;
+             	
+             	/*
+             	if (abs(Vmag)>0.001){
+             	sc=(sqrt(h)/(Vmag*P_DIFF))*((grad_p[0])*Vxc+(grad_p[1])*Vyc);}
+             	else{sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));}
+             	*/
+             	/*
+             	if (abs(Vmean)<0.0001){sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));}
+             	else{sc=(sqrt(h)/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));}*/
+             	
+             	//sc=(1/(Vmean*P_DIFF))*((grad_p[0]*U)+(grad_p[1]*V));
+             	
+             	//sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*U)+(grad_p[1]*V));
+             	//sc=(-2/V_DIFF)*(dVx_dx+dVy_dy)
              	if (sc<0){sc=0;}
              	//if(V_DIFF==0){sc=0;}
              	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
@@ -1117,6 +1178,7 @@ public:
              	
              	double THETA=sc*sc*h;
              	if (THETA>1){THETA=1;}
+             	//if (THETA>1){printf("%f",THETA);}
              	set_sc(THETA);
              	
              	
@@ -1201,7 +1263,7 @@ public:
                 		}
                 	}
                 
-		
+			
 			if (U[0]==U[1] && U[1]==U[2]){
 				coeff[0][i]=0;
 				coeff[1][i]=0;
@@ -1214,6 +1276,8 @@ public:
 			
                 		}
                 	}
+                	
+                           	
 		}	
                 
 
@@ -1284,10 +1348,9 @@ public:
 					coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
 			
                 		}
-                	}
-		
-		}	       
+                	}      
 	}
+}
 	
 	
         void setup_normals(){

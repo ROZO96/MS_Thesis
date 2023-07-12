@@ -3,12 +3,13 @@
 
 //-----------------------------------------
 /* choose hydro test */
-//-----------------------------------------
+//----------------------------------------
+
 #define SODX
-//#define SODY
+// #define SODY
 // #define SINEX
-// #define SEDOV
-//#define GAUSSX
+//#define SEDOV
+// #define GAUSSX
 // #define GAUSSY
 // #define UNIFORM
 // #define NOH
@@ -18,6 +19,7 @@
 // #define KHYSMOOTH
 // #define BLOB
 // #define DF
+//#define GRESHOVORTEX
 
 //-----------------------------------------
 /* set dimensionality */
@@ -33,7 +35,7 @@
 //-----------------------------------------
 /* debug flag for debug output */
 //-----------------------------------------
-// #define DEBUG
+//#define DEBUG
 
 //-----------------------------------------
 /* define flag to read positions and triangles from file (only option currently) */
@@ -77,10 +79,13 @@ const int MAX_TBIN = pow(2,N_TBINS);
 //-----------------------------------------
 /* define distribution scheme */
 //-----------------------------------------
+
+
+#define SU_SCHEME
 //#define LDA_SCHEME
 //#define N_SCHEME
 //#define BLENDED
-#define Bx_SCHEME
+//#define Bx_SCHEME
 //-----------------------------------------
 /* set order of scheme (none for 2nd order) */
 //-----------------------------------------
@@ -89,7 +94,7 @@ const int MAX_TBIN = pow(2,N_TBINS);
 // #define SELF_GRAVITY // !!! NOT PERIODIC !!!
 // #define ANALYTIC_GRAVITY
 // #define PARA_RES
- #define PARA_UP
+#define PARA_UP
 
 const double GRAV = 6.67e-11;
 const double MSOLAR = 1.989e+30;
@@ -98,12 +103,12 @@ const double M_LIM = 0.0001;    // change for different tests
 const double E_LIM = 0.0001;
 const double C_LIM = 0.0001;
 
-const std::string OUT_DIR = "Mesh_case/Case_1/Bx_Scheme/";
+const std::string OUT_DIR = "Mesh_case/Case_1/SU_Scheme/";
 const std::string LOG_DIR = OUT_DIR + "log.txt";
 
 // Sod Shock Tube (Varied in X)
 #ifdef SODX
-const double CFL = 0.5;
+const double CFL = 0.2;
 const double T_TOT = 0.2;
 const double GAMMA = 5.0/3.0;
 const double SIDE_LENGTH_X = 2.0;
@@ -131,7 +136,7 @@ const double SIDE_LENGTH_Y = 2.0;
 // Sedov Blast Wave
 #ifdef SEDOV
 const double CFL = 0.2;
-const double T_TOT = 0.01;
+const double T_TOT = 0.1;
 const double GAMMA = 5.0/3.0;
 const double SIDE_LENGTH_X = 10.0; // if altered, change setup.cpp as well
 const double SIDE_LENGTH_Y = 10.0;
@@ -231,11 +236,25 @@ const double SIDE_LENGTH_Y = 10.0;
 const double MACH = 0.0;
 #endif
 
+
+
+#ifdef GRESHOVORTEX
+const double CFL=0.9;
+const double T_TOT=3;
+const double GAMMA=5.0/3.0;
+const double SIDE_LENGTH_X = 1.0;
+const double SIDE_LENGTH_Y = 1.0;
+const double R_INNER_VORTEX=0.2;
+const double R_OUTER_VORTEX=0.4;
+
+
+#endif 
+
 const double GAMMA_1 = GAMMA - 1.0;
 const double GAMMA_2 = GAMMA - 2.0;
 
 #ifdef FIXED_DT
-const double DT_FIX = 0.00001;
+const double DT_FIX = 0.000001;
 #endif
 
 

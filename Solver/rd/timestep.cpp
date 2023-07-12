@@ -7,7 +7,7 @@
 #include "base.h"
 #include <omp.h> 
 
-void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH , double P_DIFF, double Vmean, double V_DIFF){
+void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH , double P_DIFF, double V_MEAN, double RHO_DIFF){
         int TBIN;
 #ifdef PARA_UP
                 #pragma omp parallel for
@@ -17,9 +17,9 @@ void drift_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std:
                 TBIN = RAND_MESH[j].get_tbin();
                 // printf("%i\t%i\t%i\n",TBIN_CURRENT,TBIN);
                 if(TBIN == 0){
-                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);
                 }
                 RAND_MESH[j].pass_update_half();
         }
@@ -84,7 +84,7 @@ void jump_update_half(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::
 }
 #endif
 
-void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double Vmean, double V_DIFF){
+void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double V_MEAN, double RHO_DIFF){
         int TBIN;
 #ifdef PARA_UP
                 #pragma omp parallel for
@@ -93,15 +93,15 @@ void drift_update(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vect
                 TBIN = RAND_MESH[j].get_tbin();
                 if(TBIN == 0){
                 	
-                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);
                 }
                 RAND_MESH[j].pass_update();
         }
 }
 /*
-void drift_update_iter(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double Vmean, double V_DIFF, long lo, long hi) {
+void drift_update_iter(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std::vector<TRIANGLE> &RAND_MESH, double P_DIFF, double V_MEAN, double RHO_DIFF, long lo, long hi) {
   long n = hi - lo;
   if (n == 0) {
     // do nothing
@@ -109,9 +109,9 @@ void drift_update_iter(int TBIN_CURRENT, int N_TRIANG, double T, double DT, std:
     TBIN = RAND_MESH[lo].get_tbin();
                 if(TBIN == 0){
                 	
-                        RAND_MESH[lo].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                        RAND_MESH[lo].calculate_second_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);
                 }else if(TBIN_CURRENT % TBIN == 0){
-                        RAND_MESH[lo].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);
+                        RAND_MESH[lo].calculate_second_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);
                 }
                 RAND_MESH[lo].pass_update();
   } else {

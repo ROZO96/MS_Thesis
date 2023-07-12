@@ -11,16 +11,16 @@
         DUAL => area of dual cells corresponding to each vertex
         U_N  => fluid state at each vertex at start of timestep
         U_HALF => intermediate fluid state at each vertex
-        FLUC_LDA => nodal residuals for each fluid variable based on initial state (LDA scheme)
-        FLUC_N   => nodal residuals for each fluid variable based on initial state (N scheme)
-        FLUC_B   => nodal residuals for each fluid variable based on initial state (B scheme)
-        FLUC_HALF_LDA => nodal residuals for each fluid variable based on intermediate state (LDA scheme)
-        FLUC_HALF_N   => nodal residuals for each fluid variable based on intermediate state (N scheme)
-        FLUC_HALF_B   => nodal residuals for each fluid variable based on intermediate state (B scheme)
+        FLUC_LDA => nodal residuals for each fluid variable based on initial state (LDA SCheme)
+        FLUC_N   => nodal residuals for each fluid variable based on initial state (N SCheme)
+        FLUC_B   => nodal residuals for each fluid variable based on initial state (B SCheme)
+        FLUC_HALF_LDA => nodal residuals for each fluid variable based on intermediate state (LDA SCheme)
+        FLUC_HALF_N   => nodal residuals for each fluid variable based on intermediate state (N SCheme)
+        FLUC_HALF_B   => nodal residuals for each fluid variable based on intermediate state (B SCheme)
         PRESSURE = pressure at position of each vertex
         PRESSURE_HALF = pressure of iintermediate state at each vertex
         PHI => element residual
-        BETA => distribution coefficient defined by chosen scheme
+        BETA => distribution coefficient defined by chosen SCheme
         MAG => length of normal to each edge
 */
 
@@ -53,8 +53,8 @@ private:
         double U_N[4][3];
         double U_HALF[4][3];
 
-        double FLUC_LDA[4][3],FLUC_N[4][3],FLUC_B[4][3],FLUC_Bx[4][3];
-        double FLUC_HALF_LDA[4][3],FLUC_HALF_N[4][3],FLUC_HALF_B[4][3],FLUC_HALF_Bx[4][3];
+        double FLUC_SU[4][3],FLUC_LDA[4][3],FLUC_N[4][3],FLUC_B[4][3],FLUC_Bx[4][3];
+        double FLUC_HALF_SU[4][3],FLUC_HALF_LDA[4][3],FLUC_HALF_N[4][3],FLUC_HALF_B[4][3],FLUC_HALF_Bx[4][3];
 
         double PRESSURE[3], PRESSURE_HALF[3];
 
@@ -180,7 +180,7 @@ public:
         //**********************************************************************************************************************
 
         // Calculate first half timestep change, passing change to vertice
-        void calculate_first_half(double T, double DT,double P_DIFF =0, double Vmean=0,double V_DIFF=0){
+        void calculate_first_half(double T, double DT,double P_DIFF, double V_MEAN,double RHO_DIFF){
                 int i,j,m,p;
                 double INFLOW[4][4][3][3];
                 double C_SOUND[3];
@@ -272,6 +272,7 @@ public:
 
                 PRESSURE_AVG = (PRESSURE[0] + PRESSURE[1] + PRESSURE[2])/3.0;
                 C = sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * (U*U + V*V)/2.0);
+                //C=sqrt(GAMMA*PRESSURE_AVG/RHO);
                 if(C <= C_LIM){C = C_LIM;}
 
 #ifdef DEBUG
@@ -436,6 +437,92 @@ public:
 
                 // Calculate spatial splitting for first half timestep
 
+#ifdef SU_SCHEME
+	
+		double TAU[4][4];
+		double SR[3];
+		
+		for (m=0;m<3;++m){
+			SR[m]=0.0;
+			for(i=0;i<4;++i){
+				if  (abs(LAMBDA[i][m])> SR[m]){
+					SR[m]=abs(LAMBDA[i][m]);
+				}	
+			}
+			//std::cout << "SR= " << SR[m] << "for m= "<< m<< std::endl;
+			
+		}
+		
+		for(i=0;i<4;++i){
+			for(j=0;j<4;++j){
+				//TAU[i][j]=abs(INFLOW[i][j][0][2])+abs(INFLOW[i][j][1][2])+abs(INFLOW[i][j][2][2]);
+				TAU[i][j]=INFLOW[i][j][0][0]+INFLOW[i][j][1][0]+INFLOW[i][j][2][0];			
+				//TAU[i][j]=(INFLOW[i][j][0][0]+INFLOW[i][j][0][1])+(INFLOW[i][j][1][0]+INFLOW[i][j][1][1])+(INFLOW[i][j][2][0]+INFLOW[i][j][2][1]);
+			}		
+		}
+		
+                mat_inv(&TAU[0][0],4,X[0],Y[0],ID,1);
+                double BETA_SUM[4][4]={};
+		for(i=0;i<4;++i){
+			for(j=0;j<4;++j){
+				for(m=0;m<3;++m){
+					
+					//-------------------------- Formulation by Ricciuto 2010---------------------------------			
+					///*
+					double visc=1.0;
+					if (i==j){
+						BETA[i][j][m]=(1.0/3.0)+0.5*visc*(INFLOW[i][0][m][2]* TAU[0][j]+INFLOW[i][0][m][2]* TAU[1][j]+INFLOW[i][2][m][2]* TAU[2][j]+INFLOW[i][3][m][2]*TAU[3][j]);
+					}
+					else{
+						BETA[i][j][m]=0.5*visc*(INFLOW[i][0][m][2]* TAU[0][j]+INFLOW[i][1][m][2]* TAU[1][j]+INFLOW[i][2][m][2]* TAU[2][j]+INFLOW[i][3][m][2]*TAU[3][j]);
+					}
+					BETA_SUM[i][j]+=BETA[i][j][m];	
+					//*/
+					//--------------------------- Formulation by Neoh 2019-----------------------------------	
+					/*
+					if (i==j){
+						BETA[i][j][m]=(1.0/3.0)+(DT/(2.0*AREA))*(INFLOW[i][j][m][2]);
+					}
+					else{
+						BETA[i][j][m]=(DT/(2*AREA))*(INFLOW[i][j][m][2]);
+					}
+					*/
+			
+					//---------------------------- Formulation by Meseguer 2010-----------------------------	
+					/*
+			
+					if (i==j){
+						BETA[i][j][m]=(1.0/3.0)-0.5*(INFLOW[i][0][m][2]* INFLOW_MINUS_SUM[0][j]+INFLOW[i][0][m][2]* INFLOW_MINUS_SUM[1][j]+INFLOW[i][2][m][2]* INFLOW_MINUS_SUM[2][j]+INFLOW[i][3][m][2]*INFLOW_MINUS_SUM[3][j]);
+					}
+					else{
+						BETA[i][j][m]=-0.5*(INFLOW[i][0][m][2]* INFLOW_MINUS_SUM[0][j]+INFLOW[i][0][m][2]* INFLOW_MINUS_SUM[1][j]+INFLOW[i][2][m][2]* INFLOW_MINUS_SUM[2][j]+INFLOW[i][3][m][2]*INFLOW_MINUS_SUM[3][j]);
+					}
+					*/		
+				}
+
+			}
+
+		} 
+		/**
+		std::cout << std::endl;	
+		  for(i=0;i<4;++i){
+                        for(j=0;j<4;++j){
+                                std::cout << BETA_SUM[i][j] << "\t";
+                        }
+                        std::cout << std::endl;
+                }
+                **/	
+	
+		for(i=0;i<4;++i){
+			for(m=0;m<3;++m){
+				FLUC_SU[i][m] = BETA[i][0][m] * PHI[0] + BETA[i][1][m] * PHI[1] + BETA[i][2][m] * PHI[2] + BETA[i][3][m] * PHI[3];				
+                        	}
+                	}
+
+#endif 
+
+
+
 #if defined(LDA_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
 
 #ifdef DEBUG
@@ -485,6 +572,7 @@ public:
                                 // std::cout << FLUC_N[i][m] << std::endl;
                         }
                 }
+    
 #endif
 
 #ifdef BLENDED
@@ -514,7 +602,10 @@ public:
 
                 for(i=0;i<4;i++){
                         SUM_FLUC_N[i] = abs(FLUC_N[i][0]) + abs(FLUC_N[i][1]) + abs(FLUC_N[i][2]);
+                       
+
                         THETA_E[i][i] = abs(PHI[i])/SUM_FLUC_N[i];
+                        if (THETA_E[i][i]>1){THETA_E[i][i]=1;}
                         FLUC_B[i][0] = THETA_E[i][i]*FLUC_N[i][0] + (IDENTITY[i][i] - THETA_E[i][i])*FLUC_LDA[i][0];
                         FLUC_B[i][1] = THETA_E[i][i]*FLUC_N[i][1] + (IDENTITY[i][i] - THETA_E[i][i])*FLUC_LDA[i][1];
                         FLUC_B[i][2] = THETA_E[i][i]*FLUC_N[i][2] + (IDENTITY[i][i] - THETA_E[i][i])*FLUC_LDA[i][2];
@@ -528,64 +619,26 @@ public:
                 
 #ifdef Bx_SCHEME              
              
-     		double  Xc, Yc;
-     		double interpol[3][5];
-     		double grad_p[2]={0,0};
-     		double grad_rho[2]={0,0};
-     		
-     		
-     		Xc=std::accumulate(std::begin(X), std::end(X), 0);
-     		Yc=std::accumulate(std::begin(Y), std::end(Y), 0);
-     		Xc/=3;
-     		Yc/=3;
-     		
-     		cell_interpolation_N(interpol);
-     		
-             	//grad_p[0]=interpol[0][4];
-             	//grad_p[1]=interpol[1][4];
-             	
-             	double Vxc, Vyc,Vmag,dVx_dx,dVy_dy;
-             	
-             	//Vxc=interpol[0][1]*Xc+interpol[1][1]*Yc+interpol[2][1];
-           	//Vyc=interpol[0][2]*Xc+interpol[1][2]*Yc+interpol[2][2];
+                          	
+             	double PRESSURE_GRAD[2],RHO_GRAD[2];
+     		double h,THETA;
              	
              	
-             	dVx_dx=interpol[0][1];
-             	dVy_dy=interpol[1][2];
+             	PRESSURE_GRAD[0]=(PRESSURE[0]*NORMAL[0][0]*MAG[0]+PRESSURE[1]*NORMAL[1][0]*MAG[1]+PRESSURE[2]*NORMAL[2][0]*MAG[2])/(2*AREA);
+             	PRESSURE_GRAD[1]=(PRESSURE[0]*NORMAL[0][1]*MAG[0]+PRESSURE[1]*NORMAL[1][1]*MAG[1]+PRESSURE[2]*NORMAL[2][1]*MAG[2])/(2*AREA);
+             	RHO_GRAD[0]=(U_N[0][0]*NORMAL[0][0]*MAG[0]+U_N[0][1]*NORMAL[1][0]*MAG[1]+U_N[0][2]*NORMAL[2][0]*MAG[2])/(2*AREA);
+             	RHO_GRAD[1]=(U_N[0][0]*NORMAL[0][1]*MAG[0]+U_N[0][1]*NORMAL[1][1]*MAG[1]+U_N[0][2]*NORMAL[2][1]*MAG[2])/(2*AREA);
+                          	
              	
-             	double sc;
-             	double h=sqrt(4*AREA/3.141592);
-             	
-             	
-             	for (i=0;i<3;i++){
-             	grad_p[0]+=PRESSURE[i]*NORMAL[i][0]*MAG[i]/(2*AREA);
-             	grad_p[1]+=PRESSURE[i]*NORMAL[i][1]*MAG[i]/(2*AREA);
-             	grad_rho[0]+=U_N[0][i]*NORMAL[i][0]*MAG[i]/(2*AREA);
-             	grad_rho[1]+=U_N[0][i]*NORMAL[i][1]*MAG[i]/(2*AREA);
-                Vxc+=U_N[1][i]/(3*U_N[0][i]);
-             	Vyc+=U_N[2][i]/(3*U_N[0][i]);}
-             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
-             	
-             	
-             	//sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));
-             	sc=(1/(Vmean*P_DIFF))*((grad_p[0])*Vxc+(grad_p[1])*Vyc) +(1/(Vmag*(1-0.125)))*((grad_rho[0])*Vxc+(grad_rho[1])*Vyc) ;
-             	
-             	/*
-             	if (abs(Vmean)<0.0001){sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));}
-             	else{sc=(sqrt(h)/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));} */
-             	//sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);
-             	if (sc<0){sc=0;}
-             	//if(V_DIFF==0){sc=0;}
-             	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
-             	//else{sc=(-2/P_DIFF)*(grad_p[0]+grad_p[1]);}
-             	//printf("SC1:%f,",sc);
-             	
-             	
-             	
-             	double THETA=sc*sc*h;
-             	//if (THETA>1){printf("%f",THETA);}
-             	
-             	if (THETA>1){THETA=1;}
+             	SC=(1/(V_MEAN*P_DIFF))*(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V);
+             	//SC+=(1/(V_MEAN*RHO_DIFF))*(RHO_GRAD[0]*U+RHO_GRAD[1]*V);
+             	if (SC<0){SC=0;}
+#ifdef DEBUG
+             	printf("SC_1:%f,",SC);
+#endif           	
+                h=sqrt(4*AREA/3.141592);   	
+             	THETA=SC*SC*h;             	
+            	if (THETA>1){THETA=1;}
              	set_sc(THETA);
              	
              	
@@ -595,6 +648,14 @@ public:
                         FLUC_Bx[i][2] = THETA*FLUC_N[i][2] + (1 - THETA)*FLUC_LDA[i][2];
                 }
              	
+#endif
+
+#ifdef SU_SCHEME
+                for(i=0;i<4;i++){
+                        DU0_HALF[i] = -1.0*DT*FLUC_SU[i][0]/DUAL[0];
+                        DU1_HALF[i] = -1.0*DT*FLUC_SU[i][1]/DUAL[1];
+                        DU2_HALF[i] = -1.0*DT*FLUC_SU[i][2]/DUAL[2];
+                }
 #endif
 
 #ifdef LDA_SCHEME
@@ -644,7 +705,7 @@ public:
         //**********************************************************************************************************************
 
 
-        void calculate_second_half(double T, double DT, double P_DIFF =0, double Vmean=0, double V_DIFF=0){
+        void calculate_second_half(double T, double DT, double P_DIFF, double V_MEAN, double RHO_DIFF){
                 int i,j,m,p;
                 double INFLOW[4][4][3][3];
 
@@ -746,6 +807,7 @@ public:
 
                 PRESSURE_AVG = (PRESSURE_HALF[0] + PRESSURE_HALF[1] + PRESSURE_HALF[2])/3.0;
                 C = sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * (U*U + V*V)/2.0);
+                //C=sqrt(GAMMA*PRESSURE_AVG/RHO);
                 if(C <= C_LIM){C = C_LIM;}
 
 #ifdef DEBUG
@@ -875,10 +937,10 @@ public:
 
                 // std::cout << SECOND_FLUC_N[0][0] << "\t" << SECOND_FLUC_N[0][1] << "\t" << SECOND_FLUC_N[0][2] << std::endl;
 
-#if defined(LDA_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
 
                 double PHI_HALF[4];
                 double SECOND_FLUC_LDA[4][3];
+                double SECOND_FLUC_SU[4][3];
 
                 for(i=0;i<4;++i){
                         PHI_HALF[i] = 0.0;
@@ -888,6 +950,93 @@ public:
                 }
 
                 // Calculate spatial splitting for first half timestep
+                
+                
+#ifdef SU_SCHEME
+
+		
+                for(i=0;i<4;++i){
+                        for(m=0;m<3;++m){
+                                FLUC_HALF_SU[i][m] = BETA[i][0][m] * (PHI_HALF[0]) + BETA[i][1][m] * (PHI_HALF[1]) + BETA[i][2][m] * (PHI_HALF[2]) + BETA[i][3][m] * (PHI_HALF[3]);
+                        }
+                }
+                
+                double DIFF[4][3];
+                double MASS[4][4][3][3];
+                double MASS_DIFF[4][3][3];
+                double SUM_MASS[4][3];
+
+		for(m=0;m<3;++m){
+			for(int n=0;n<3;++n){
+				if(m==n){
+					for(i=0;i<4;++i){
+						for(j=0;j<4;++j){
+                                			MASS[i][j][m][n] = (AREA/36.0)*(3+ 12*BETA[i][j][n]-1);
+                                		}
+                                	}
+                                }
+                               	else{
+                               		for(i=0;i<4;++i){
+						for(j=0;j<4;++j){
+                                			MASS[i][j][m][n] = (AREA/36.0)*(12*BETA[i][j][n]-1);
+                                		}
+                                	}
+                                }
+                        }
+               	}
+                
+		  
+		 for(i=0;i<4;++i){
+                        for(m=0;m<3;++m){
+                                DIFF[i][m] = U_HALF[i][m] - U_N[i][m];
+                        }
+                }
+                
+                
+                     for(m=0;m<3;++m){
+                        	for(int n=0;n<3;++n){
+                        	
+                        		for(i=0;i<4;++i){
+                        	
+                                	MASS_DIFF[i][m][n] = MASS[i][0][m][n] * DIFF[0][m] + MASS[i][1][m][n] * DIFF[1][m] + MASS[i][2][m][n] * DIFF[2][m] + MASS[i][3][m][n] * DIFF[3][m];
+                                }
+                        }
+                }
+                
+                
+                for(m=0;m<3;++m){
+                	for(i=0;i<4;i++){
+	                 SUM_MASS[i][m] = 0.0;
+                       		for(int n=0;n<3;++n){
+                             
+                                if(DT==0.0){
+                                        SUM_MASS[i][m] = 0.0;
+                                }else{
+                                        SUM_MASS[i][m] += MASS_DIFF[i][m][n]/DT;
+                                }
+                                }
+                        }
+                }
+
+                for(i=0;i<4;++i){
+                        for(m=0;m<3;++m){
+                                SECOND_FLUC_SU[i][m] = SUM_MASS[i][m] + 0.5*(FLUC_SU[i][m] + FLUC_HALF_SU[i][m]);
+                        }
+                }
+                
+                /*
+                for(i=0;i<4;++i){
+                        for(j=0;j<3;++j){
+                                std::cout << SECOND_FLUC_SU[i][j] << "\t";
+                        }
+                        std::cout << std::endl;
+                }
+                */
+
+                
+#endif
+
+#if defined(LDA_SCHEME) or defined(BLENDED) or defined(Bx_SCHEME)
 
                 for(i=0;i<4;++i){
                         for(m=0;m<3;++m){
@@ -1020,12 +1169,23 @@ public:
                         }
                 }
 
-#endif
+	
+
+#endif                
+	
+                
                 DUAL[0] = VERTEX_0->get_dual();
                 DUAL[1] = VERTEX_1->get_dual();
                 DUAL[2] = VERTEX_2->get_dual();
 
                 // std::cout << SECOND_FLUC_LDA[0][0] << "\t" << SECOND_FLUC_LDA[0][1] << "\t" << SECOND_FLUC_LDA[0][2] << std::endl;
+#ifdef SU_SCHEME
+                for(i=0;i<4;i++){
+                        DU0[i] = -1.0*(DT/DUAL[0])*SECOND_FLUC_SU[i][0];
+                        DU1[i] = -1.0*(DT/DUAL[1])*SECOND_FLUC_SU[i][1];
+                        DU2[i] = -1.0*(DT/DUAL[2])*SECOND_FLUC_SU[i][2];
+                }
+#endif
 
 #ifdef LDA_SCHEME
                 for(i=0;i<4;i++){
@@ -1072,9 +1232,17 @@ public:
 
                 for(i=0;i<4;i++){
                         SUM_FLUC_N[i] = abs(SECOND_FLUC_N[i][0]) + abs(SECOND_FLUC_N[i][1]) + abs(SECOND_FLUC_N[i][2]);
-
+			
+			/*
+			if (DT<0.0000001){
+                        	THETA_E[i][i] = 2*abs(PHI[i])/SUM_FLUC_N[i];}
+                        	else{THETA_E[i][i] = abs(PHI[i])/SUM_FLUC_N[i];}
+                        */	
                         THETA_E[i][i] = abs(PHI[i])/SUM_FLUC_N[i];
-
+                        
+                        if (THETA_E[i][i]>1){THETA_E[i][i]=1;}
+			
+			
                         FLUC_B[i][0] = THETA_E[i][i]*SECOND_FLUC_N[i][0] + (IDENTITY[i][i] - THETA_E[i][i])*SECOND_FLUC_LDA[i][0];
                         FLUC_B[i][1] = THETA_E[i][i]*SECOND_FLUC_N[i][1] + (IDENTITY[i][i] - THETA_E[i][i])*SECOND_FLUC_LDA[i][1];
                         FLUC_B[i][2] = THETA_E[i][i]*SECOND_FLUC_N[i][2] + (IDENTITY[i][i] - THETA_E[i][i])*SECOND_FLUC_LDA[i][2];
@@ -1088,97 +1256,33 @@ public:
 
 
 #ifdef Bx_SCHEME              
-             
-     		double  Xc, Yc;
-     		double interpol[3][5];
-     		double interpol_new[3][5];
-     		double grad_p[2]={0,0};
-     		double grad_rho[2]={0,0};
-     		
-     		Xc=std::accumulate(std::begin(X), std::end(X), 0);
-     		Yc=std::accumulate(std::begin(Y), std::end(Y), 0);
-     		Xc/=3;
-     		Yc/=3;
-     		
-     		cell_interpolation_N(interpol);
-     		cell_interpolation_HALF(interpol_new);
-     		
-     		
-             	//grad_p[0]=interpol_new[0][4];
-             	//grad_p[1]=interpol_new[1][4];
+             	
+             	double RHO_OLD,PRESSURE_AVG_OLD;
+             	double PRESSURE_GRAD[2],RHO_GRAD[2];
+             	double h, THETA;
              	
              	
+             	RHO_OLD = pow((sqrt(U_N[0][0]) + sqrt(U_N[0][1]) + sqrt(U_N[0][2]))/3.0, 2);
+             	PRESSURE_AVG_OLD=(PRESSURE[0]+PRESSURE[1]+PRESSURE[2])/3;
              	
-             	double Vxc=0, Vyc=0, Vmag,dVx_dx,dVy_dy;
+             	PRESSURE_GRAD[0]=(PRESSURE_HALF[0]*NORMAL[0][0]*MAG[0]+PRESSURE_HALF[1]*NORMAL[1][0]*MAG[1]+PRESSURE_HALF[2]*NORMAL[2][0]*MAG[2])/(2*AREA);
+             	PRESSURE_GRAD[1]=(PRESSURE_HALF[0]*NORMAL[0][1]*MAG[0]+PRESSURE_HALF[1]*NORMAL[1][1]*MAG[1]+PRESSURE_HALF[2]*NORMAL[2][1]*MAG[2])/(2*AREA);
+             	RHO_GRAD[0]=(U_HALF[0][0]*NORMAL[0][0]*MAG[0]+U_HALF[0][1]*NORMAL[1][0]*MAG[1]+U_HALF[0][2]*NORMAL[2][0]*MAG[2])/(2*AREA);
+             	RHO_GRAD[1]=(U_HALF[0][0]*NORMAL[0][1]*MAG[0]+U_HALF[0][1]*NORMAL[1][1]*MAG[1]+U_HALF[0][2]*NORMAL[2][1]*MAG[2])/(2*AREA);
              	
-           	//Vxc=interpol_new[0][1]*Xc+interpol_new[1][1]*Yc+interpol_new[2][1];
-           	//Vyc=interpol_new[0][2]*Xc+interpol_new[1][2]*Yc+interpol_new[2][2];
-           	
-             	
-             	//double P_old=interpol[0][4]*Xc+interpol[1][4]*Yc+interpol[2][4];
-             	//double P_half=interpol_new[0][4]*Xc+interpol_new[1][4]*Yc+interpol_new[2][4];
-             	double P_old=0;
-             	double P_half=0;
-             	double rho_old=0;
-             	double rho_half=0;
-             	
-             	double sc;
-             	double h=sqrt(4*AREA/3.141592);
-             	
-             	dVx_dx=interpol[0][1];
-             	dVy_dy=interpol[1][2];
+  
+             	            	             	
+             	SC=(1/(V_MEAN*P_DIFF))*(((PRESSURE_AVG-PRESSURE_AVG_OLD)/DT)+(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V));
+             	//SC+=(1/(V_MEAN*RHO_DIFF))*(((RHO -RHO_OLD)/DT)+(RHO_GRAD[0]*U+RHO_GRAD[1]*V)) ;
+             	if (SC<0){SC=0;}
              	
              	
-             	for (i=0;i<3;i++){
-             	grad_p[0]+=PRESSURE_HALF[i]*NORMAL[i][0]*MAG[i]/(2*AREA);
-             	grad_p[1]+=PRESSURE_HALF[i]*NORMAL[i][1]*MAG[i]/(2*AREA);
-             	grad_rho[0]+=U_HALF[0][i]*NORMAL[i][0]*MAG[i]/(2*AREA);
-             	grad_rho[1]+=U_HALF[0][i]*NORMAL[i][1]*MAG[i]/(2*AREA);
-             	Vxc+=U_HALF[1][i]/(3*U_HALF[0][i]);
-             	Vyc+=U_HALF[2][i]/(3*U_HALF[0][i]);
-             	
-             	P_old+=PRESSURE[i]/3;
-             	P_half+=PRESSURE_HALF[i]/3;
-             	rho_old+=U_N[0][i]/3;
-             	rho_half+=U_HALF[0][i]/3;
-             	}
-             	
-             	Vmag=sqrt(Vxc*Vxc+Vyc*Vyc);
-             	
-             	
-             
-             	//sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));
-             	
-             	sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0])*Vxc+(grad_p[1])*Vyc)+(1/(Vmean*(1-0.125)))*(((rho_half-rho_old)/DT)+(grad_rho[0])*Vxc+(grad_rho[1])*Vyc) ;
-             	
-             	/*
-             	if (abs(Vmag)>0.001){
-             	sc=(sqrt(h)/(Vmag*P_DIFF))*((grad_p[0])*Vxc+(grad_p[1])*Vyc);}
-             	else{sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));}
-             	*/
-             	/*
-             	if (abs(Vmean)<0.0001){sc=(sqrt(h)/(2*P_DIFF))*((grad_p[0])+(grad_p[1]));}
-             	else{sc=(sqrt(h)/(Vmean*P_DIFF))*((grad_p[0]*Vxc)+(grad_p[1]*Vyc));}*/
-             	
-             	//sc=(1/(Vmean*P_DIFF))*((grad_p[0]*U)+(grad_p[1]*V));
-             	
-             	//sc=(1/(Vmean*P_DIFF))*(((P_half-P_old)/DT)+(grad_p[0]*U)+(grad_p[1]*V));
-             	//sc=(-2/V_DIFF)*(dVx_dx+dVy_dy)
-             	if (sc<0){sc=0;}
-             	//if(V_DIFF==0){sc=0;}
-             	//else{sc=(-2/V_DIFF)*(dVx_dx+dVy_dy);}
-             	//else{sc=(-2/P_DIFF)*((P_half-P_old)/h +(grad_p[0]+grad_p[1]));}
-             	//printf("%f, %f,%f ",sc,P_half,P_old);
-             	//printf("SC2:%f\n",sc);
-             	//sc=sqrt(sc*sc);
-             	
-
-             	
-             	
-             	
-             	double THETA=sc*sc*h;
+#ifdef DEBUG
+             	printf("SC_2:%f\n",SC);
+#endif           
+             	h=sqrt(4*AREA/3.141592);
+             	THETA=SC*SC*h;
              	if (THETA>1){THETA=1;}
-             	//if (THETA>1){printf("%f",THETA);}
              	set_sc(THETA);
              	
              	
@@ -1208,150 +1312,6 @@ public:
                 AVG = (sqrt(L1)*L2+sqrt(R1)*R2)/(sqrt(L1)+sqrt(R1));
                 return AVG;
         }
-
-
-
-
-	void cell_interpolation_N(double (&coeff)[3][5]){
-	
-		double X1,X2,X3,Y1,Y2,Y3;
-		double U[3];
-		double A_inv[3][3];
-		double det_A;
-		//double coeff[3][5];
-	
-	
-	
-		X1 = X[0];
-                X2 = X[1];
-                X3 = X[2];
-
-                Y1 = Y[0];
-                Y2 = Y[1];
-                Y3 = Y[2];
-                
-                det_A=X1*(Y2-Y3)+X2*(Y3-Y1)+X3*(Y1-Y2);
-                
-		A_inv[0][0]=(Y2-Y3);
-		A_inv[0][1]=-(X2-X3);
-		A_inv[0][2]=(X2*Y3-X3*Y2);
-		
-		A_inv[1][0]=-(Y3-Y1);
-		A_inv[1][1]=(X1-X3);
-		A_inv[1][2]=-(X1*Y3-X3*Y1);
-		
-		A_inv[2][0]=(Y1-Y2);
-		A_inv[2][1]=-(X1-X2);
-		A_inv[2][2]=(X1*Y2-X2*Y1);
-		            
-		for (int i=0;i<5;i++){
-		
-			if (i==0){
-				for (int j=0;j<3;j++){
-                			U[j]=U_N[i][j];
-                		}
-			}
-			else if (i<=3){
-                		for (int j=0;j<3;j++){
-                			U[j]=U_N[i][j]/U_N[0][j];
-                		}
-                	}
-                
-                	else if (i==4){
-                		for (int j=0;j<3;j++){
-                			U[j]=PRESSURE[j];
-                		}
-                	}
-                
-			
-			if (U[0]==U[1] && U[1]==U[2]){
-				coeff[0][i]=0;
-				coeff[1][i]=0;
-				coeff[2][i]=U[0];
-			
-			}
-			else{
-				for (int j=0;j<3;j++){
-					coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
-			
-                		}
-                	}
-                	
-                           	
-		}	
-                
-
-        	//return coeff;        
-	}
-	
-	
-	
-	void cell_interpolation_HALF(double (&coeff)[3][5]){
-	
-		double X1,X2,X3,Y1,Y2,Y3;
-		double U[3];
-		double A_inv[3][3];
-		double det_A;
-
-	
-	
-		X1 = X[0];
-                X2 = X[1];
-                X3 = X[2];
-
-                Y1 = Y[0];
-                Y2 = Y[1];
-                Y3 = Y[2];
-                
-                det_A=X1*(Y2-Y3)+X2*(Y3-Y1)+X3*(Y1-Y2);
-                
-		A_inv[0][0]=(Y2-Y3);
-		A_inv[0][1]=-(X2-X3);
-		A_inv[0][2]=(X2*Y3-X3*Y2);
-		
-		A_inv[1][0]=-(Y3-Y1);
-		A_inv[1][1]=(X1-X3);
-		A_inv[1][2]=-(X1*Y3-X3*Y1);
-		
-		A_inv[2][0]=(Y1-Y2);
-		A_inv[2][1]=-(X1-X2);
-		A_inv[2][2]=(X1*Y2-X2*Y1);
-		            
-		for (int i=0;i<5;i++){
-		
-			if (i==0){
-				for (int j=0;j<3;j++){
-                			U[j]=U_HALF[i][j];
-                		}
-			}
-			else if (i<=3){
-                		for (int j=0;j<3;j++){
-                			U[j]=U_HALF[i][j]/U_HALF[0][j];
-                		}
-                	}
-                
-                	else if (i==4){
-                		for (int j=0;j<3;j++){
-                			U[j]=PRESSURE_HALF[j];
-                		}
-                	}
-                
-		
-			if (U[0]==U[1] && U[1]==U[2]){
-				coeff[0][i]=0;
-				coeff[1][i]=0;
-				coeff[2][i]=U[0];
-			
-			}
-			else{
-				for (int j=0;j<3;j++){
-					coeff[j][i]=(1/det_A)*(A_inv[j][0]*U[0]+A_inv[j][1]*U[1]+A_inv[j][2]*U[2]);
-			
-                		}
-                	}      
-	}
-}
-	
 	
         void setup_normals(){
                 // Calculate normals (just in first timestep for static grid)

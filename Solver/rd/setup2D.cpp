@@ -88,7 +88,7 @@ VERTEX setup_vertex(double X, double Y){
     // if(i==0 and j==0){std::cout << "Using 2D Sedov Blast" << std::endl;}
         double RHO = 1.0;
         double V = 0.00000001;
-        double P = 100.0;
+        double P = 1e-8;
 
         double R = sqrt((X - 5.0)*(X - 5.0) + (Y - 5.0)*(Y - 5.0));
 
@@ -262,6 +262,38 @@ VERTEX setup_vertex(double X, double Y){
         NEW_VERTEX.set_pressure(PRESSURE);
 #endif
 
+#ifdef GRESHOVORTEX
+	double RHO=1.0;
+	double CENTRE_X = 0.50*SIDE_LENGTH_X;
+        double CENTRE_Y = 0.50*SIDE_LENGTH_Y;
+	double X_VEL=0.0;
+	double Y_VEL=0.0;
+	double PRESSURE= 3+ 4*log(2);
+	
+	
+	double R=sqrt((X-CENTRE_X)*(X-CENTRE_X) +(Y-CENTRE_Y)*(Y-CENTRE_Y));
+	double ANGLE=atan2((Y-CENTRE_Y),(X-CENTRE_X));
+
+	
+	
+	if(R<R_INNER_VORTEX){
+		X_VEL=-5.0*R*sin(ANGLE);
+		Y_VEL=5.0*R*cos(ANGLE);
+		PRESSURE=5 + (25.0/2) * (R*R);
+	}
+
+	else if (R<R_OUTER_VORTEX){
+		X_VEL=-(2-5*R)*sin(ANGLE);
+		Y_VEL=(2-5*R)*cos(ANGLE);
+		PRESSURE=9 + (25.0/2)*(R*R) -20*R+4*log((R)/0.2);	
+	}
+	
+	NEW_VERTEX.set_mass_density(RHO);
+        NEW_VERTEX.set_x_velocity(X_VEL);
+        NEW_VERTEX.set_y_velocity(Y_VEL);
+        NEW_VERTEX.set_pressure(PRESSURE);
+
+#endif
 
         NEW_VERTEX.setup_specific_energy();
         NEW_VERTEX.prim_to_con();

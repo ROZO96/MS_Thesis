@@ -71,6 +71,11 @@ int main(int ARGC, char *ARGV[]){
         printf("Using B Scheme\n");
 #endif
 
+#ifdef Bx_SCHEME  
+	printf("Using Bx Scheme\n");
+#endif
+
+
 #ifdef FIRST_ORDER
         printf("Using 1st order\n");
 #else
@@ -172,7 +177,7 @@ int main(int ARGC, char *ARGV[]){
         /****** Inject pressure for Sedov test  ******/
 
         double AREA_CHECK  = 0.0;
-        double ETOT = 0.0,ETOT_AIM = 300000.0,PRESSURE_AIM;
+        double ETOT = 0.0,ETOT_AIM = 10,PRESSURE_AIM;
         for(i=0; i<N_POINTS; ++i){
                 if((RAND_POINTS[i].get_x()-5.0)*(RAND_POINTS[i].get_x()-5.0) + (RAND_POINTS[i].get_y()-5.0)*(RAND_POINTS[i].get_y()-5.0) < R_BLAST*R_BLAST){
                         AREA_CHECK = AREA_CHECK + RAND_POINTS[i].get_dual();
@@ -198,53 +203,67 @@ int main(int ARGC, char *ARGV[]){
                 RAND_MESH[j].calculate_len_vel_contribution();             // calculate flux through TRIANGLE
         }
 
-	double P_MAX,P_MIN,POSSIBLE_P, P_DIFF, Vmean_x, Vmean_y, Vmean,V_MIN,V_MAX,V_DIFF,V_MAG;
+	double P_MAX,P_MIN,POSSIBLE_P, P_DIFF;
+	double V_MEAN_X, V_MEAN_Y, V_MEAN;
+	double RHO_MAX,RHO_MIN,POSSIBLE_RHO, RHO_DIFF;
+	
 	P_MIN=10000000;
 	P_MAX=-100000000;
-	Vmean=0;
-	Vmean_x=0;
-	Vmean_y=0;
-	V_MIN=10000000;
-	V_MAX=-100000000;
+	
+	RHO_MIN=10000000;
+	RHO_MAX=-100000000;
+	
+	V_MEAN_X=0;
+	V_MEAN_Y=0;
+	
         for(i=0; i<N_POINTS; ++i){
         	
                 NEXT_DT = RAND_POINTS[i].calc_next_dt();
-                POSSIBLE_P= RAND_POINTS[i].get_pressure();
-                //Vmean_x+=RAND_POINTS[i].get_x_velocity();
-                //Vmean_y+=RAND_POINTS[i].get_y_velocity();
-                Vmean_x=RAND_POINTS[i].get_x_velocity();
-                Vmean_y=RAND_POINTS[i].get_y_velocity();
-                V_MAG=sqrt(Vmean_x*Vmean_x+Vmean_y*Vmean_y);
-                
                 //printf("%f\n",NEXT_DT  );      // check dt is min required by CFL
+                
                 if(POSSIBLE_DT < NEXT_DT){NEXT_DT=POSSIBLE_DT;}
+                
+#ifdef Bx_SCHEME        
+                POSSIBLE_P= RAND_POINTS[i].get_pressure();
+                V_MEAN_X+=RAND_POINTS[i].get_x_velocity();
+                V_MEAN_Y+=RAND_POINTS[i].get_y_velocity();
+                POSSIBLE_RHO=RAND_POINTS[i].get_mass_density();
+
                 if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
                 if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
-                if(V_MAG>V_MAX){V_MAX=V_MAG;}
-                if(V_MAG<V_MIN){V_MIN=V_MAG;}
-                
+                if(POSSIBLE_RHO>RHO_MAX){RHO_MAX=POSSIBLE_RHO;}
+                if(POSSIBLE_RHO<RHO_MIN){RHO_MIN=POSSIBLE_RHO;}
+#endif
+
                 RAND_POINTS[i].reset_len_vel_sum();
                 
                 }
+                
+#ifdef Bx_SCHEME 
         P_DIFF=P_MAX-P_MIN;
-        V_DIFF=V_MAX-V_MIN;
-        Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
-        //printf("V_DIFF=%f\n",V_DIFF);
-	//printf("P_DIFF=%f\n",P_DIFF);
-	printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
-	
+        RHO_DIFF=RHO_MAX-RHO_MIN;
+        V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
+
+
+#ifdef DEBUG
+	printf("V_MEAN=%f,denominator=%f\n",V_MEAN,V_MEAN*P_DIFF);
+#endif
+
+
+#endif
         printf("Checking mesh size ...");
         printf("Mesh Size = %d\n",int(RAND_MESH.size()));
         printf("Evolving fluid ...\n");
 
         int TBIN, TBIN_CURRENT = 0;
-        NEXT_DT = 0.000001;                                                            // set first timestep to zero
+        NEXT_DT = 0.0000000001;                                                            // set first timestep to zero
 
         /****** Loop over time until total time T_TOT is reached *****************************************************************************************************/
         while(T<T_TOT){
 
         /****** Update time step to new value ******/
                 DT = NEXT_DT;   
+                printf("DT=%.3e \n",DT);
                                                                 // set timestep based on caclulation from previous timestep
 
 #ifdef FIXED_DT
@@ -269,7 +288,7 @@ int main(int ARGC, char *ARGV[]){
 
 #ifdef DRIFT
                 /****** Update residual for active bins (Drift method) ******/
-                drift_update_half(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH,P_DIFF,Vmean,V_DIFF);
+                drift_update_half(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH,P_DIFF,V_MEAN,RHO_DIFF);
 #endif
 #ifdef JUMP
                 /****** Update residual for active bins (Jump method) ******/
@@ -285,17 +304,20 @@ int main(int ARGC, char *ARGV[]){
 #endif
                 /****** Update residual for all bins (No adaptive method) ******/
                 for(j=0;j<N_TRIANG;++j){                                                                         // loop over all triangles in MESH
-                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,Vmean,V_DIFF);                                        	// calculate flux through TRIANGLE
+                        RAND_MESH[j].calculate_first_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);                                        	// calculate flux through TRIANGLE
                         RAND_MESH[j].pass_update_half();
                 }
 #endif
+
+
 		P_MIN=10000000;
 		P_MAX=-100000000;
-		V_MIN=10000000;
-		V_MAX=-100000000;
-		
-		Vmean_x=0;
-		Vmean_y=0;
+	
+		RHO_MIN=10000000;
+		RHO_MAX=-100000000;
+	
+		V_MEAN_X=0;
+		V_MEAN_Y=0;
 
 #ifdef PARA_UP
                 #pragma omp parallel for
@@ -306,31 +328,38 @@ int main(int ARGC, char *ARGV[]){
                         RAND_POINTS[i].reset_du_half();                        // reset du value to zero for next timestep
                         RAND_POINTS[i].check_values_half();
                         RAND_POINTS[i].con_to_prim_half();
-                        Vmean_x+=RAND_POINTS[i].get_x_velocity_half();
-                	Vmean_y+=RAND_POINTS[i].get_y_velocity_half();
-                	
-                	//Vmean_x=RAND_POINTS[i].get_x_velocity_half();
-                	//Vmean_y=RAND_POINTS[i].get_y_velocity_half();
-                	//V_MAG=sqrt(Vmean_x*Vmean_x+Vmean_y*Vmean_y);
-                	//V_MAG=RAND_POINTS[i].get_mass_density_half();
-                        POSSIBLE_P= RAND_POINTS[i].get_pressure_half();
-                       	
-                        if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
+                        
+#ifdef Bx_SCHEME        
+                	POSSIBLE_P= RAND_POINTS[i].get_pressure_half();
+                	V_MEAN_X+=RAND_POINTS[i].get_x_velocity_half();
+                	V_MEAN_Y+=RAND_POINTS[i].get_y_velocity_half();
+                	POSSIBLE_RHO=RAND_POINTS[i].get_mass_density_half();
+
+                	if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
                 	if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
-                	//if(V_MAG>V_MAX){V_MAX=V_MAG;}
-                	//if(V_MAG<V_MIN){V_MIN=V_MAG;}
+                	if(POSSIBLE_RHO>RHO_MAX){RHO_MAX=POSSIBLE_RHO;}
+                	if(POSSIBLE_RHO<RHO_MIN){RHO_MIN=POSSIBLE_RHO;}
+#endif
+                       
                 }
-                P_DIFF=P_MAX-P_MIN;
-                V_DIFF=V_MAX-V_MIN;
-                Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
-		//printf("P_DIFF=%f\n",P_DIFF);
-		//printf("V_DIFF=%f\n",V_DIFF);
-		printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
+
+
+
+#ifdef Bx_SCHEME 
+        	P_DIFF=P_MAX-P_MIN;
+        	RHO_DIFF=RHO_MAX-RHO_MIN;
+        	V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
+
+		
+#ifdef DEBUG
+		printf("V_MEAN=%f,denominator=%f\n",V_MEAN,V_MEAN*P_DIFF);
+#endif
+#endif
         /****** 2nd order update ***************************************************************************************************/
 
 #ifdef DRIFT
                 /****** Update residual for active bins (Drift method) ******/
-                drift_update(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH,P_DIFF,Vmean,V_DIFF);
+                drift_update(TBIN_CURRENT, N_TRIANG, T, DT, RAND_MESH,P_DIFF,V_MEAN,RHO_DIFF);
 #endif
 
 #if !defined(DRIFT) && !defined(JUMP)
@@ -339,18 +368,21 @@ int main(int ARGC, char *ARGV[]){
 #endif
                 /****** Update residual for all bins (No adaptive method) ******/
                 for(j=0;j<N_TRIANG;++j){                                       // loop over all triangles in MESH
-                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,Vmean,V_DIFF);             // calculate flux through TRIANGLE
+                        RAND_MESH[j].calculate_second_half(T,DT,P_DIFF,V_MEAN,RHO_DIFF);             // calculate flux through TRIANGLE
                         RAND_MESH[j].pass_update();
                 }
 #endif
 
                 sources(RAND_POINTS, DT, N_POINTS);
-                P_MIN=10000000;
+
+		P_MIN=10000000;
 		P_MAX=-100000000;
-		V_MIN=10000000;
-		V_MAX=-100000000;
-		Vmean_x=0;
-		Vmean_y=0;
+	
+		RHO_MIN=10000000;
+		RHO_MAX=-100000000;
+	
+		V_MEAN_X=0;
+		V_MEAN_Y=0;
 
 
 #ifdef PARA_UP
@@ -362,24 +394,32 @@ int main(int ARGC, char *ARGV[]){
                         RAND_POINTS[i].reset_du();                             // reset du value to zero for next timestep
                         RAND_POINTS[i].check_values();
                         RAND_POINTS[i].con_to_prim();                          // convert these to their corresponding conserved
-                        Vmean_x+=RAND_POINTS[i].get_x_velocity();
-                	Vmean_y+=RAND_POINTS[i].get_y_velocity();
-                	//Vmean_x=RAND_POINTS[i].get_x_velocity();
-                	//Vmean_y=RAND_POINTS[i].get_y_velocity();
-                	V_MAG=sqrt(Vmean_x*Vmean_x+Vmean_y*Vmean_y);
-                        POSSIBLE_P= RAND_POINTS[i].get_pressure();
-                        if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
+                                               
+#ifdef Bx_SCHEME        
+                	POSSIBLE_P= RAND_POINTS[i].get_pressure();
+                	V_MEAN_X+=RAND_POINTS[i].get_x_velocity();
+                	V_MEAN_Y+=RAND_POINTS[i].get_y_velocity();
+                	POSSIBLE_RHO=RAND_POINTS[i].get_mass_density();
+  	
+  	          	if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
                 	if(POSSIBLE_P<P_MIN){P_MIN=POSSIBLE_P;}
-                	if(V_MAG>V_MAX){V_MAX=V_MAG;}
-                	if(V_MAG<V_MIN){V_MIN=V_MAG;}
+                	if(POSSIBLE_RHO>RHO_MAX){RHO_MAX=POSSIBLE_RHO;}
+                	if(POSSIBLE_RHO<RHO_MIN){RHO_MIN=POSSIBLE_RHO;}
+#endif
+                                        
                 }
-		P_DIFF=P_MAX-P_MIN;
-		Vmean=sqrt(((Vmean_x/N_POINTS)*(Vmean_x/N_POINTS)) +((Vmean_y/N_POINTS)*(Vmean_y/N_POINTS)));
-		V_DIFF=V_MAX-V_MIN;
+                
+#ifdef Bx_SCHEME 
+        	P_DIFF=P_MAX-P_MIN;
+        	RHO_DIFF=RHO_MAX-RHO_MIN;
+        	V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
+
 		
-		//printf("P_DIFF=%f\n",P_DIFF);
-		//printf("V_DIFF=%f\n",V_DIFF);
-		//printf("Vmean=%f,denominator=%f\n",Vmean,Vmean*P_DIFF);
+#ifdef DEBUG
+		printf("V_MEAN=%f,denominator=%f\n",V_MEAN,V_MEAN*P_DIFF);
+#endif
+#endif
+
                 if(TBIN_CURRENT == 0){
                         reset_tbins(T, DT, N_TRIANG, N_POINTS, NEXT_DT, RAND_MESH, RAND_POINTS);
                 }
@@ -396,8 +436,10 @@ int main(int ARGC, char *ARGV[]){
         }
 
         write_snap(RAND_POINTS,T,DT,N_POINTS,SNAP_ID,LOGFILE);
+        
+#if defined(BLENDED) or defined(Bx_SCHEME) 
         write_sc(RAND_MESH, N_TRIANG,SNAP_ID,T);
-
+#endif
 
         return 0;
 }

@@ -118,7 +118,7 @@ data_Bx=np.asarray(data_Bx).astype(float)
 
 
 x,y=data_N[:,0],data_N[:,1]
-ind_2=np.where((y<1.05) & (y>0.95));
+ind_2=np.where((y<=np.max(y)) & (y>=np.min(y)));
 
 x=np.asarray([x[i] for i in ind_2]).flatten()
 y=np.asarray([y[i] for i in ind_2]).flatten()

@@ -113,7 +113,7 @@ for l in range(np.size(case)):
 			x=np.asarray([x[i] for i in ind_2]).flatten()
 			y=np.asarray([y[i] for i in ind_2]).flatten()
 			
-			ind_3=np.where((y<1.05) & (y>0.95));
+			ind_3=np.where((y<2.05) & (y>-0.95));
 			
 			x=np.asarray([x[i] for i in ind_3]).flatten()
 			y=np.asarray([y[i] for i in ind_3]).flatten()
@@ -133,8 +133,8 @@ for l in range(np.size(case)):
 			data_u.append(np.asarray([data_u_intial[i] for i in ind]).flatten())
 		data_u=np.array(data_u)
 		#error=np.max(np.abs(data_u-exact_sol),axis=1)
-		#error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
-		error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
+		error=np.sum(np.abs(data_u-exact_sol),axis=1)/np.shape(data_u)[1]
+		#error=np.sqrt(np.sum((data_u-exact_sol)**2,axis=1))/np.shape(data_u)[1]
 		
 		
 		error_data[j,l]=error;

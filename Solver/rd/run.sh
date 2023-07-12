@@ -8,6 +8,6 @@
 # ./lairds
 
 g++ -fopenmp main.cpp -I /opt/OpenBLAS/include /opt/OpenBLAS/lib/libopenblas.a
-./a.out
+./a.out 
 
 

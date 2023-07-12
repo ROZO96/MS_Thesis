@@ -17,19 +17,19 @@ typedef PDT::Iso_rectangle                                  Iso_rectangle;
 typedef PDT::Covering_sheets                                Covering_sheets;
 
 //#define RANDOMIC
- #define UNIFORMIC
+#define UNIFORMIC
 // #define UNIFORMOFFSETIC
 // #define PERTUNIFORMOFFSETIC
 
 int main(){
-        float xmax=2.0,ymax=2.0;
+        float xmax=2,ymax=2;
         Iso_rectangle domain(0, 0, xmax, ymax); // The cube for the periodic domain
 
         // construction from a list of points :
         std::list<Point> L;
 
         int i,j;
-        int nx=512, ny=512	, count=nx*ny;
+        int nx=5, ny=5, count=nx*ny;
         float x,y,xmove,ymove;
 
 #ifdef RANDOMIC

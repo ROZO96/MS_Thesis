@@ -1,6 +1,19 @@
-Throughout history, the field of astronomy and astrophysics, among other scientific fields, has relied on two main methods to gain knowledge: empirical observation and experimentation, and logical reasoning and theorizing. Astronomers observe the universe and meticulously record their findings of the night sky, while astrophysicists use their knowledge to create hypotheses and make predictions about what they expect to observe. However, due to the vast amount of complex physical processes that occur in astrophysical scenarios, and the difficulty of creating fully controlled experiments to test theoretical predictions, a new approach was needed to generate knowledge within these fields of science.\\
-Hence, Computer simulations have appeared as a modern way to create knowledge in astrophysics (as well as in other branches of science and engineering). These numerical experiments enable physicists to set up different physical scenarios and study how they evolve over time and space under a certain set of equations/models. In that sense, it is expected that if the relevant physical laws were taken into account the results obtained from the simulation should closely resemble empirical observations.\\
+Throughout history, the field of astronomy and astrophysics, among other scientific fields, has relied on two main methods to gain knowledge: empirical observation and experimentation, and logical reasoning and theorizing. Astronomers observe the universe and meticulously record their findings of the night sky, while astrophysicists use their knowledge to create hypotheses and make predictions about what they expect to observe. However, due to the vast amount of complex physical processes that occur in astrophysical scenarios, and the difficulty of creating fully controlled experiments to test theoretical predictions, a new approach was needed to generate knowledge within these fields of science \cite{Sundberg2010CulturesAstrophysics}.\\
+Hence, Computer simulations have appeared as a modern way to create knowledge in astrophysics (as well as in other branches of science and engineering). These numerical experiments enable physicists to set up different physical scenarios and study how they evolve over time and space under a certain set of equations and models \cite{Sundberg2012CreatingAstrophysics}. In that sense, it is expected that if the relevant physical laws were taken into account the results obtained from the simulation should closely resemble observations \cite{Heng2014TheSimulations}. Comparing these models' predictions with empirical data enable us to verify, improve and modify it to increase the agreement with observation and hence gain a deeper understanding of the studied astrophysical phenomena \cite{Muller2005SimulatingAchievements}.
+
+Over recent years, advancements in computer and processor technology have made it possible to study increasingly complex astrophysical scenarios through computational simulations. These scenarios include the cosmological evolution of the universe, the formation of stars and galaxies \cite{Vogelsberger2020CosmologicalFormation, Garrison-Kimmel2017NotGalaxies} as well as the study of black holes and supernovae \cite{Brown2008TurduckeningStudy, Donmez2006NumericalCode, Muller2004TowardModels}. The simulations use models that can describe the cooling of gas, radiation fields, magnetic fields, and relativistic particles among other physical phenomena.
+
+In many of the situations previously described, baryonic (ordinary) matter plays a key role in the dynamics as also being part of the visible component of most of them, and it is mostly present in the gaseous phase as hydrogen and helium.  Gases in astrophysical simulations are usually modeled through Euler equations which consist of a set of Partial Differential Equations (PDEs) representing mass, momentum, and  energy conservation on an inviscid fluid continuum (See equation \ref{eq:Euler}). 
+
+\begin{subequations}\label{eq:Euler}
+\begin{gather}
+    \pdv{\rho}{t} + \div{\rho \vb{u}}=0\\
+    \pdv{\rho\vb{u}}{t} + \div(\rho \vb{uu} +p\vb{I})=0\\
+    \pdv{e}{t} + \div{\rho h\vb{u}}=0
+\end{gather}
+\end{subequations}
+
+Due to the non-linear nature of the systems of PDEs, it is only possible to find analytical solutions to them in very simple specific cases but to be able to solve Euler's equations in more general situations a computational/numerical approach is necessary. The numerical methods used to discretize hydrodynamics equations can be 
+classified into three main categories: Eulerian, Lagrangian, and Arbitrary Eulerian-Lagrangian (ALE). 
 
 
-
-adiooosss	

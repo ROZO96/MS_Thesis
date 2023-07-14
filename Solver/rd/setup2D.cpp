@@ -2,6 +2,7 @@
  * This file was written by Ben Morton (bmorton@ed.ac.uk) and Zenyu Wu (zhenyu.wu@ed.ac.uk).
  */
 
+#define _USE_MATH_DEFINES
 #include <iostream>
 
 #include "constants.h"
@@ -88,7 +89,7 @@ VERTEX setup_vertex(double X, double Y){
     // if(i==0 and j==0){std::cout << "Using 2D Sedov Blast" << std::endl;}
         double RHO = 1.0;
         double V = 0.00000001;
-        double P = 1e-8;
+        double P = 100;
 
         double R = sqrt((X - 5.0)*(X - 5.0) + (Y - 5.0)*(Y - 5.0));
 
@@ -293,6 +294,31 @@ VERTEX setup_vertex(double X, double Y){
         NEW_VERTEX.set_y_velocity(Y_VEL);
         NEW_VERTEX.set_pressure(PRESSURE);
 
+#endif
+
+#ifdef YEEVORTEX
+	double RHO_INF=1.0;
+	double PRESSURE_INF= 1.0;
+	double BETA=5.0;
+	double K=1.0;
+	double CENTRE_X = 0.50*SIDE_LENGTH_X;
+        double CENTRE_Y = 0.50*SIDE_LENGTH_Y;
+
+	
+	double R=sqrt((X-CENTRE_X)*(X-CENTRE_X) +(Y-CENTRE_Y)*(Y-CENTRE_Y));
+	double OMEGA_R=(BETA/(2.0*M_PI))*exp((1.0-R*R)/2.0);
+	double X_VEL=-OMEGA_R*(Y-CENTRE_Y);
+	double Y_VEL=OMEGA_R*(X-CENTRE_X) ;
+	
+	double T_R=(PRESSURE_INF/RHO_INF)-((GAMMA-1)/GAMMA)*(BETA*BETA/(8.0*M_PI*M_PI))*exp(1.0-R*R);
+	double RHO=pow(T_R/K,1/(GAMMA-1));
+	double PRESSURE=K*pow(RHO,GAMMA);
+	
+		
+	NEW_VERTEX.set_mass_density(RHO);
+        NEW_VERTEX.set_x_velocity(X_VEL);
+        NEW_VERTEX.set_y_velocity(Y_VEL);
+        NEW_VERTEX.set_pressure(PRESSURE);
 #endif
 
         NEW_VERTEX.setup_specific_energy();

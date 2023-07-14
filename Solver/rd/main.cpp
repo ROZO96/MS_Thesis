@@ -177,14 +177,14 @@ int main(int ARGC, char *ARGV[]){
         /****** Inject pressure for Sedov test  ******/
 
         double AREA_CHECK  = 0.0;
-        double ETOT = 0.0,ETOT_AIM = 10,PRESSURE_AIM;
+        double ETOT = 0.0,ETOT_AIM = 1000,PRESSURE_AIM;
         for(i=0; i<N_POINTS; ++i){
-                if((RAND_POINTS[i].get_x()-5.0)*(RAND_POINTS[i].get_x()-5.0) + (RAND_POINTS[i].get_y()-5.0)*(RAND_POINTS[i].get_y()-5.0) < R_BLAST*R_BLAST){
+                if((RAND_POINTS[i].get_x()-0.5*SIDE_LENGTH_X)*(RAND_POINTS[i].get_x()-0.5*SIDE_LENGTH_X) + (RAND_POINTS[i].get_y()-0.5*SIDE_LENGTH_Y )*(RAND_POINTS[i].get_y()-0.5*SIDE_LENGTH_Y ) < R_BLAST*R_BLAST){
                         AREA_CHECK = AREA_CHECK + RAND_POINTS[i].get_dual();
                 }
         }
         for(i=0; i<N_POINTS; ++i){
-                if((RAND_POINTS[i].get_x()-5.0)*(RAND_POINTS[i].get_x()-5.0) + (RAND_POINTS[i].get_y()-5.0)*(RAND_POINTS[i].get_y()-5.0) < R_BLAST*R_BLAST){
+                if((RAND_POINTS[i].get_x()-0.5*SIDE_LENGTH_X)*(RAND_POINTS[i].get_x()-0.5*SIDE_LENGTH_X) + (RAND_POINTS[i].get_y()-0.5*SIDE_LENGTH_Y )*(RAND_POINTS[i].get_y()-0.5*SIDE_LENGTH_Y ) < R_BLAST*R_BLAST){
                         PRESSURE_AIM = (ETOT_AIM * GAMMA_1 / RAND_POINTS[i].get_dual()) * (RAND_POINTS[i].get_dual() / (AREA_CHECK));
                         RAND_POINTS[i].set_pressure(PRESSURE_AIM);
                         ETOT = ETOT + RAND_POINTS[i].get_pressure()*RAND_POINTS[i].get_dual()/GAMMA_1;
@@ -215,6 +215,7 @@ int main(int ARGC, char *ARGV[]){
 	
 	V_MEAN_X=0;
 	V_MEAN_Y=0;
+	V_MEAN=0;
 	
         for(i=0; i<N_POINTS; ++i){
         	
@@ -225,8 +226,9 @@ int main(int ARGC, char *ARGV[]){
                 
 #ifdef Bx_SCHEME        
                 POSSIBLE_P= RAND_POINTS[i].get_pressure();
-                V_MEAN_X+=RAND_POINTS[i].get_x_velocity();
-                V_MEAN_Y+=RAND_POINTS[i].get_y_velocity();
+                V_MEAN_X=RAND_POINTS[i].get_x_velocity();
+                V_MEAN_Y=RAND_POINTS[i].get_y_velocity();
+                V_MEAN+=sqrt((V_MEAN_X*V_MEAN_X)+(V_MEAN_Y*V_MEAN_Y));
                 POSSIBLE_RHO=RAND_POINTS[i].get_mass_density();
 
                 if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
@@ -242,8 +244,8 @@ int main(int ARGC, char *ARGV[]){
 #ifdef Bx_SCHEME 
         P_DIFF=P_MAX-P_MIN;
         RHO_DIFF=RHO_MAX-RHO_MIN;
-        V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
-
+       // V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
+	V_MEAN/=N_POINTS;
 
 #ifdef DEBUG
 	printf("V_MEAN=%f,denominator=%f\n",V_MEAN,V_MEAN*P_DIFF);
@@ -318,6 +320,7 @@ int main(int ARGC, char *ARGV[]){
 	
 		V_MEAN_X=0;
 		V_MEAN_Y=0;
+		V_MEAN=0;
 
 #ifdef PARA_UP
                 #pragma omp parallel for
@@ -331,8 +334,9 @@ int main(int ARGC, char *ARGV[]){
                         
 #ifdef Bx_SCHEME        
                 	POSSIBLE_P= RAND_POINTS[i].get_pressure_half();
-                	V_MEAN_X+=RAND_POINTS[i].get_x_velocity_half();
-                	V_MEAN_Y+=RAND_POINTS[i].get_y_velocity_half();
+                	V_MEAN_X=RAND_POINTS[i].get_x_velocity_half();
+                	V_MEAN_Y=RAND_POINTS[i].get_y_velocity_half();           
+                	V_MEAN+=sqrt((V_MEAN_X*V_MEAN_X)+(V_MEAN_Y*V_MEAN_Y));
                 	POSSIBLE_RHO=RAND_POINTS[i].get_mass_density_half();
 
                 	if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
@@ -342,14 +346,14 @@ int main(int ARGC, char *ARGV[]){
 #endif
                        
                 }
-
+		
 
 
 #ifdef Bx_SCHEME 
         	P_DIFF=P_MAX-P_MIN;
         	RHO_DIFF=RHO_MAX-RHO_MIN;
-        	V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
-
+        	//V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
+		V_MEAN/=N_POINTS;
 		
 #ifdef DEBUG
 		printf("V_MEAN=%f,denominator=%f\n",V_MEAN,V_MEAN*P_DIFF);
@@ -383,7 +387,7 @@ int main(int ARGC, char *ARGV[]){
 	
 		V_MEAN_X=0;
 		V_MEAN_Y=0;
-
+		V_MEAN=0;
 
 #ifdef PARA_UP
                 #pragma omp parallel for
@@ -397,8 +401,9 @@ int main(int ARGC, char *ARGV[]){
                                                
 #ifdef Bx_SCHEME        
                 	POSSIBLE_P= RAND_POINTS[i].get_pressure();
-                	V_MEAN_X+=RAND_POINTS[i].get_x_velocity();
-                	V_MEAN_Y+=RAND_POINTS[i].get_y_velocity();
+                	V_MEAN_X=RAND_POINTS[i].get_x_velocity();
+                	V_MEAN_Y=RAND_POINTS[i].get_y_velocity();
+                	V_MEAN+=sqrt((V_MEAN_X*V_MEAN_X)+(V_MEAN_Y*V_MEAN_Y));
                 	POSSIBLE_RHO=RAND_POINTS[i].get_mass_density();
   	
   	          	if(POSSIBLE_P>P_MAX){P_MAX=POSSIBLE_P;}
@@ -412,8 +417,8 @@ int main(int ARGC, char *ARGV[]){
 #ifdef Bx_SCHEME 
         	P_DIFF=P_MAX-P_MIN;
         	RHO_DIFF=RHO_MAX-RHO_MIN;
-        	V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
-
+        	//V_MEAN=sqrt(((V_MEAN_X/N_POINTS)*(V_MEAN_X/N_POINTS)) +((V_MEAN_Y/N_POINTS)*(V_MEAN_Y/N_POINTS)));
+		V_MEAN/=N_POINTS;
 		
 #ifdef DEBUG
 		printf("V_MEAN=%f,denominator=%f\n",V_MEAN,V_MEAN*P_DIFF);

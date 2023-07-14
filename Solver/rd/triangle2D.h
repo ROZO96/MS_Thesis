@@ -622,6 +622,9 @@ public:
                           	
              	double PRESSURE_GRAD[2],RHO_GRAD[2];
      		double h,THETA;
+     		double V_MAG;
+     		
+     		V_MAG=sqrt(U*U+V*V);
              	
              	
              	PRESSURE_GRAD[0]=(PRESSURE[0]*NORMAL[0][0]*MAG[0]+PRESSURE[1]*NORMAL[1][0]*MAG[1]+PRESSURE[2]*NORMAL[2][0]*MAG[2])/(2*AREA);
@@ -629,14 +632,19 @@ public:
              	RHO_GRAD[0]=(U_N[0][0]*NORMAL[0][0]*MAG[0]+U_N[0][1]*NORMAL[1][0]*MAG[1]+U_N[0][2]*NORMAL[2][0]*MAG[2])/(2*AREA);
              	RHO_GRAD[1]=(U_N[0][0]*NORMAL[0][1]*MAG[0]+U_N[0][1]*NORMAL[1][1]*MAG[1]+U_N[0][2]*NORMAL[2][1]*MAG[2])/(2*AREA);
                           	
+             	if (V_MAG!=0){
+             	SC=(1/(V_MAG*P_DIFF))*(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V);
+             	if (RHO_DIFF!=0.0){
+             	SC+=(1/(V_MAG*RHO_DIFF))*(RHO_GRAD[0]*U+RHO_GRAD[1]*V);}}
+
              	
-             	SC=(1/(V_MEAN*P_DIFF))*(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V);
+             	//SC=(1/(V_MEAN*P_DIFF))*(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V);
              	//SC+=(1/(V_MEAN*RHO_DIFF))*(RHO_GRAD[0]*U+RHO_GRAD[1]*V);
              	if (SC<0){SC=0;}
 #ifdef DEBUG
              	printf("SC_1:%f,",SC);
 #endif           	
-                h=sqrt(4*AREA/3.141592);   	
+                h=sqrt(4*AREA/M_PI);   	
              	THETA=SC*SC*h;             	
             	if (THETA>1){THETA=1;}
              	set_sc(THETA);
@@ -1261,6 +1269,7 @@ public:
              	double PRESSURE_GRAD[2],RHO_GRAD[2];
              	double h, THETA;
              	
+             	double V_MAG=sqrt(U*U+V*V);
              	
              	RHO_OLD = pow((sqrt(U_N[0][0]) + sqrt(U_N[0][1]) + sqrt(U_N[0][2]))/3.0, 2);
              	PRESSURE_AVG_OLD=(PRESSURE[0]+PRESSURE[1]+PRESSURE[2])/3;
@@ -1270,9 +1279,15 @@ public:
              	RHO_GRAD[0]=(U_HALF[0][0]*NORMAL[0][0]*MAG[0]+U_HALF[0][1]*NORMAL[1][0]*MAG[1]+U_HALF[0][2]*NORMAL[2][0]*MAG[2])/(2*AREA);
              	RHO_GRAD[1]=(U_HALF[0][0]*NORMAL[0][1]*MAG[0]+U_HALF[0][1]*NORMAL[1][1]*MAG[1]+U_HALF[0][2]*NORMAL[2][1]*MAG[2])/(2*AREA);
              	
-  
-             	            	             	
-             	SC=(1/(V_MEAN*P_DIFF))*(((PRESSURE_AVG-PRESSURE_AVG_OLD)/DT)+(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V));
+  		//std::cout <<"Vmag= "<<V_MAG << " ,PDIFF="<<P_DIFF<<std::endl;
+             	if (V_MAG!=0){
+             	SC=(1/(V_MAG*P_DIFF))*(((PRESSURE_AVG-PRESSURE_AVG_OLD)/DT)+(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V));
+             	if (RHO_DIFF!=0.0){
+             	SC+=(1/(V_MAG*RHO_DIFF))*(((RHO -RHO_OLD)/DT)+(RHO_GRAD[0]*U+RHO_GRAD[1]*V)) ; 
+             	 }         }	  
+             	//if (RHO_DIFF!=0.0){
+             	//}          	
+             	//SC=(1/(V_MEAN*P_DIFF))*(((PRESSURE_AVG-PRESSURE_AVG_OLD)/DT)+(PRESSURE_GRAD[0]*U+PRESSURE_GRAD[1]*V));
              	//SC+=(1/(V_MEAN*RHO_DIFF))*(((RHO -RHO_OLD)/DT)+(RHO_GRAD[0]*U+RHO_GRAD[1]*V)) ;
              	if (SC<0){SC=0;}
              	
@@ -1280,7 +1295,7 @@ public:
 #ifdef DEBUG
              	printf("SC_2:%f\n",SC);
 #endif           
-             	h=sqrt(4*AREA/3.141592);
+             	h=sqrt(4*AREA/M_PI);
              	THETA=SC*SC*h;
              	if (THETA>1){THETA=1;}
              	set_sc(THETA);

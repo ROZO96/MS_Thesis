@@ -84,13 +84,13 @@ file_B = open(file_directory+'/B_Scheme/snapshot_20.txt')
 file_N = open(file_directory+'/N_Scheme/snapshot_20.txt')
 file_LDA = open(file_directory+'/LDA_Scheme/snapshot_20.txt')
 file_Bx = open(file_directory+'/Bx_Scheme/snapshot_20.txt')
-
+file_Bx_1 = open(file_directory+'/Bx_Scheme_1/snapshot_20.txt')
 
 lines_B=file_B.readlines();
 lines_N=file_N.readlines();
 lines_LDA=file_LDA.readlines();
 lines_Bx=file_Bx.readlines();
-
+lines_Bx_1=file_Bx_1.readlines();
 
 n_point,t=int(lines_N[0].split()[0]),float(lines_N[0].split()[1])
 
@@ -116,6 +116,10 @@ for string in lines_Bx[1:]:
     data_Bx.append(string.split())
 data_Bx=np.asarray(data_Bx).astype(float)
 
+data_Bx_1 = []
+for string in lines_Bx_1[1:]:
+    data_Bx_1.append(string.split())
+data_Bx_1=np.asarray(data_Bx_1).astype(float)
 
 x,y=data_N[:,0],data_N[:,1]
 ind_2=np.where((y<=np.max(y)) & (y>=np.min(y)));
@@ -131,7 +135,7 @@ y=np.asarray([y[i] for i in ind])
 print('Plotting Results...')
 variables=np.array([2,3,5])
 variable_name=np.array([r'$\rho$',r'$U_x$',r'$P$'])
-schemes=np.array(['N','LDA','B','Bx'])
+schemes=np.array(['N','LDA','B','Bx','Bx_1'])
 exact_sol=sod_profile(x)
 
 plt.rcParams.update({'font.size': 20})
@@ -151,6 +155,8 @@ for j in range(np.size(variables)):
 			U=np.asarray([data_B[i,variables[j]] for i in ind_2]).flatten()
 		elif scheme=='Bx':
 			U=np.asarray([data_Bx[i,variables[j]] for i in ind_2]).flatten()
+		elif scheme=='Bx_1':
+			U=np.asarray([data_Bx_1[i,variables[j]] for i in ind_2]).flatten()
 		
 		U=[U[i] for i in ind]
 		ax[j].plot(x,U,label=scheme)

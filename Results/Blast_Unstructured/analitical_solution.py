@@ -9,7 +9,7 @@ rho_1=1;
 P_1=100;
 gamma=5.0/3.0;
 R_blast=0.25;
-E=1000#/(2*R_blast);
+E=1000/(gamma-1)#/(2*R_blast);
 v1=np.sqrt(gamma*P_1/rho_1)
 #------Problem Dimensionality-----#
 nu=2; 
@@ -61,21 +61,16 @@ def shock_update(r,t):
 	r2=((E/rho_1)**(1/(2+nu))) *(t**(2/(2+nu)));# Shock Position
 	v2=(4/((nu+2)*(gamma+1)))*((E/rho_1)**(1/2)) *(1/(r2**(nu/2)))
 	rho2=((gamma+1)/(gamma-1))*rho_1
-	#p2=((8*E)/(((nu+2)**2)*(gamma+1)))*1/(r2**nu);
-	p2=P_1-(-rho2*(v2**2)+(v1**2)*rho_1)
+	p2=((8*E)/(((nu+2)**2)*(gamma+1)))*1/(r2**nu);
+	#p2=P_1-(-rho2*(v2**2)+(v1**2)*rho_1)
 
 	rho=[];
 	v=[];
 	p=[];
 	V0=V_min;
 	for r_i in r:
-		if (r_i-R_blast)<0:
-			lam,g,f,h=sedov_sol(V_min);		
-			rho.append(rho2*g);
-			v.append(v2*f);
-			p.append(p2*h);
-		elif r_i-R_blast<=r2:
-			lam=(r_i-R_blast)/r2;
+		if r_i<=r2:
+			lam=(r_i)/r2;
 			V0=fsolve(solve_V,V0,args=lam)[0]
 			lam,g,f,h=sedov_sol(V0);		
 			rho.append(rho2*g);
@@ -102,14 +97,14 @@ print('Reading result files....')
 file_B = open(file_directory+'/B_Scheme/snapshot_20.txt')
 file_N = open(file_directory+'/N_Scheme/snapshot_20.txt')
 file_LDA = open(file_directory+'/LDA_Scheme/snapshot_20.txt')
-file_Bx = open(file_directory+'/Bx_Scheme/snapshot_20.txt')
+file_Bx = open(file_directory+'/Bx_Scheme/snapshot_5.txt')
 
 lines_B=file_B.readlines();
 lines_N=file_N.readlines();
 lines_LDA=file_LDA.readlines();
 lines_Bx=file_Bx.readlines();
 
-n_point,time=int(lines_N[0].split()[0]),float(lines_N[0].split()[1])	
+n_point,time=int(lines_Bx[0].split()[0]),float(lines_Bx[0].split()[1])	
 
 
 data_N = []
@@ -187,7 +182,7 @@ for j in range(np.size(variables)):
 				
 			ax[j].plot(r,U,label=scheme)
 	ax[j].plot(r,exact_sol[j],label='Exact Sol.',color='k');
-	ax[j].set_xlim([0,np.max(r)])
+	ax[j].set_xlim([0.25,np.max(r)])
 	#ax[j].set_ylim([0,None])
 	
 ax[-1].legend(loc='lower right')

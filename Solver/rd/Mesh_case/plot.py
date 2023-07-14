@@ -38,7 +38,7 @@ for i in range(2,6):
 	c=ax_actual.tricontourf(x,y,z,levels=512) 
 
 	fig.colorbar(c,ax=ax_actual, orientation='vertical')
-	#'''
+	'''
 	z=z-z.min();
 	z=z/z.max();
 	z=z*y.max();
@@ -48,7 +48,7 @@ for i in range(2,6):
 	ax_actual.set_ylim(y.min(),y.max())
 
 fig.tight_layout()
-name=sys.argv[2]
+#name=sys.argv[2]
 #plt.savefig("../../"+name+".png")
 #plt.savefig("../../"+name+".svg")
 plt.show()

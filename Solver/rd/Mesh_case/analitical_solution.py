@@ -6,12 +6,13 @@ import sys
 
 #------Properties Before Shock Wave----#
 rho_1=1;
-P_1=0.1;
+P_1=100;
 gamma=5.0/3.0;
-R_blast=0.25;
-E=10#/(2*R_blast);
+R_blast=0;
+E=1000/(gamma-1);#/(2*R_blast);
+v1=np.sqrt(gamma*P_1/rho_1)
 #------Problem Dimensionality-----#
-nu=2; 
+nu=2.0; 
 
 '''
 def solve_t_initial(t):
@@ -57,23 +58,19 @@ def solve_V(V,lam):
 def shock_update(r,t):
 	#t+=to;
 	#------Properties post Shock-----#
-	r2=((E/rho_1)**(1/(2+nu))) *(t**(2/(2+nu)));# Shock Position
+	r2=((E/rho_1)**(1.0/(2+nu))) *(t**(2.0/(2+nu)));# Shock Position
 	v2=(4/((nu+2)*(gamma+1)))*((E/rho_1)**(1/2)) *(1/(r2**(nu/2)))
 	rho2=((gamma+1)/(gamma-1))*rho_1
 	p2=((8*E)/(((nu+2)**2)*(gamma+1)))*1/(r2**nu);
+	#p2=P_1-(-rho2*(v2**2)+(v1**2)*rho_1)
 
 	rho=[];
 	v=[];
 	p=[];
 	V0=V_min;
 	for r_i in r:
-		if (r_i-R_blast)<0:
-			lam,g,f,h=sedov_sol(V_min);		
-			rho.append(rho2*g);
-			v.append(v2*f);
-			p.append(p2*h);
-		elif (r_i-R_blast)<=r2:
-			lam=(r_i-R_blast)/r2;
+		if r_i<=r2:
+			lam=(r_i)/r2;
 			V0=fsolve(solve_V,V0,args=lam)[0]
 			lam,g,f,h=sedov_sol(V0);		
 			rho.append(rho2*g);
@@ -86,8 +83,8 @@ def shock_update(r,t):
 	return rho,v,p
 	
 def cilindiral_conversion(x,y):
-	CENTRE_X = 0.50*10;
-	CENTRE_Y = 0.50*10;
+	CENTRE_X = 0.50*np.max(x);
+	CENTRE_Y = 0.50*np.max(y);
 
 	return np.sqrt((x-CENTRE_X)**2 +(y-CENTRE_Y)**2);
 	
@@ -97,17 +94,17 @@ V_min=2/((nu+2)*gamma)
 file_directory=sys.argv[1]
 print('Results for 2D Sedov Blast')
 print('Reading result files....')
-#file_B = open(file_directory+'/B_Scheme/snapshot_10.txt')
-file_N = open(file_directory+'/N_Scheme/snapshot_20.txt')
-#file_LDA = open(file_directory+'/LDA_Scheme/snapshot_10.txt')
+file_B = open(file_directory+'/Bx_Scheme/snapshot_5.txt')
+file_N = open(file_directory+'/Bx_Scheme/snapshot_10.txt')
+file_LDA = open(file_directory+'/Bx_Scheme/snapshot_15.txt')
 file_Bx = open(file_directory+'/Bx_Scheme/snapshot_20.txt')
 
-#lines_B=file_B.readlines();
+lines_B=file_B.readlines();
 lines_N=file_N.readlines();
-#lines_LDA=file_LDA.readlines();
+lines_LDA=file_LDA.readlines();
 lines_Bx=file_Bx.readlines();
 
-n_point,time=int(lines_N[0].split()[0]),float(lines_N[0].split()[1])	
+n_point,time=int(lines_Bx[0].split()[0]),float(lines_Bx[0].split()[1])	
 
 
 data_N = []
@@ -115,7 +112,7 @@ for string in lines_N[1:]:
     data_N.append(string.split())
 data_N=np.asarray(data_N).astype(float)
 
-'''
+
 data_LDA = []
 for string in lines_LDA[1:]:
     data_LDA.append(string.split())
@@ -126,7 +123,6 @@ data_B = []
 for string in lines_B[1:]:
     data_B.append(string.split())
 data_B=np.asarray(data_B).astype(float)
-'''
 
 data_Bx = []
 for string in lines_Bx[1:]:
@@ -143,7 +139,7 @@ r=np.asarray([r[i] for i in ind])
 print('Plotting Results...');
 variables=np.array([2,3,5]);
 variable_name=np.array([r'$\rho$',r'$V_r$',r'$P$']);
-schemes=np.array(['N','Bx']);
+schemes=np.array(['N','LDA','B','Bx']);
 exact_sol=shock_update(r,time);
 
 
@@ -158,7 +154,10 @@ for j in range(np.size(variables)):
 		if j!=1: 
 			if scheme=='N':
 				U=np.asarray([data_N[i,variables[j]] for i in ind]).flatten()
-		
+			elif scheme=='LDA': 
+				U=np.asarray([data_LDA[i,variables[j]] for i in ind]).flatten()
+			elif scheme=='B':
+				U=np.asarray([data_B[i,variables[j]] for i in ind]).flatten()
 			elif scheme=='Bx':
 				U=np.asarray([data_Bx[i,variables[j]] for i in ind]).flatten()
 		
@@ -168,7 +167,14 @@ for j in range(np.size(variables)):
 				Ux=np.asarray([data_N[i,variables[j]] for i in ind]).flatten()
 				Uy=np.asarray([data_N[i,variables[j]+1] for i in ind]).flatten()
 				U=np.sqrt(Ux**2+Uy**2);
-
+			elif scheme=='LDA': 
+				Ux=np.asarray([data_LDA[i,variables[j]] for i in ind]).flatten()
+				Uy=np.asarray([data_LDA[i,variables[j]+1] for i in ind]).flatten()
+				U=np.sqrt(Ux**2+Uy**2);
+			elif scheme=='B':
+				Ux=np.asarray([data_B[i,variables[j]] for i in ind]).flatten()
+				Uy=np.asarray([data_B[i,variables[j]+1] for i in ind]).flatten()
+				U=np.sqrt(Ux**2+Uy**2)
 			elif scheme=='Bx':
 				Ux=np.asarray([data_Bx[i,variables[j]] for i in ind]).flatten()
 				Uy=np.asarray([data_Bx[i,variables[j]+1] for i in ind]).flatten()
@@ -176,7 +182,7 @@ for j in range(np.size(variables)):
 				
 			ax[j].plot(r,U,label=scheme)
 	ax[j].plot(r,exact_sol[j],label='Exact Sol.',color='k');
-	ax[j].set_xlim([0,2])
+	ax[j].set_xlim([0.25,2])
 	#ax[j].set_ylim([0,None])
 	
 ax[-1].legend(loc='lower right')

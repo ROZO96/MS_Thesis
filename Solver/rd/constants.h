@@ -5,10 +5,10 @@
 /* choose hydro test */
 //----------------------------------------
 
-#define SODX
+//#define SODX
 // #define SODY
 // #define SINEX
-//#define SEDOV
+#define SEDOV
 // #define GAUSSX
 // #define GAUSSY
 // #define UNIFORM
@@ -20,6 +20,7 @@
 // #define BLOB
 // #define DF
 //#define GRESHOVORTEX
+//#define YEEVORTEX
 
 //-----------------------------------------
 /* set dimensionality */
@@ -52,7 +53,7 @@
 //-----------------------------------------
 /* define boundar  y conditions (none for periodic) */
 //-----------------------------------------
-// #define CLOSED_BOUNDARY
+//#define CLOSED_BOUNDARY
 #define PERIODIC_BOUNDARY
 // #define FIXED_BOUNDARY
 // #define REFLECTIVE_BOUNDARY        // doesn't work yet
@@ -81,9 +82,9 @@ const int MAX_TBIN = pow(2,N_TBINS);
 //-----------------------------------------
 
 
-#define SU_SCHEME
+//#define SU_SCHEME
 //#define LDA_SCHEME
-//#define N_SCHEME
+#define N_SCHEME
 //#define BLENDED
 //#define Bx_SCHEME
 //-----------------------------------------
@@ -103,12 +104,12 @@ const double M_LIM = 0.0001;    // change for different tests
 const double E_LIM = 0.0001;
 const double C_LIM = 0.0001;
 
-const std::string OUT_DIR = "Mesh_case/Case_1/SU_Scheme/";
+const std::string OUT_DIR = "Mesh_case/Case_5/Bx_Scheme/";
 const std::string LOG_DIR = OUT_DIR + "log.txt";
 
 // Sod Shock Tube (Varied in X)
 #ifdef SODX
-const double CFL = 0.2;
+const double CFL = 0.5;
 const double T_TOT = 0.2;
 const double GAMMA = 5.0/3.0;
 const double SIDE_LENGTH_X = 2.0;
@@ -136,13 +137,13 @@ const double SIDE_LENGTH_Y = 2.0;
 // Sedov Blast Wave
 #ifdef SEDOV
 const double CFL = 0.2;
-const double T_TOT = 0.1;
+const double T_TOT = 0.01;
 const double GAMMA = 5.0/3.0;
-const double SIDE_LENGTH_X = 10.0; // if altered, change setup.cpp as well
-const double SIDE_LENGTH_Y = 10.0;
+const double SIDE_LENGTH_X = 2.0; // if altered, change setup.cpp as well
+const double SIDE_LENGTH_Y = 2.0;
 
 const double BLAST_E_TOT = 0.0;
-const double R_BLAST     = 0.25;
+const double R_BLAST     = 0.05;
 #endif
 
 // Gaussian pulse advection (x-direction)
@@ -249,6 +250,15 @@ const double R_OUTER_VORTEX=0.4;
 
 
 #endif 
+
+#ifdef YEEVORTEX
+const double CFL=0.9;
+const double T_TOT=10;
+const double GAMMA=5.0/3.0;
+const double SIDE_LENGTH_X = 10.0;
+const double SIDE_LENGTH_Y = 10.0;
+#endif
+
 
 const double GAMMA_1 = GAMMA - 1.0;
 const double GAMMA_2 = GAMMA - 2.0;

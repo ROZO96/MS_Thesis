@@ -25,7 +25,7 @@ VERTEX setup_vertex(double X, double Y){
         VERTEX NEW_VERTEX;
 
         NEW_VERTEX.set_x(X);
-        NEW_VERTEX.set_y(Y);
+        NEW_VERTEX.set_y(Y*SIDE_LENGTH_Y);
 
         NEW_VERTEX.set_dx(SIDE_LENGTH_X/1000.0);
         NEW_VERTEX.set_dy(SIDE_LENGTH_Y/1000.0);
@@ -90,8 +90,9 @@ VERTEX setup_vertex(double X, double Y){
         double RHO = 1.0;
         double V = 0.00000001;
         double P = 100;
-
-        double R = sqrt((X - 5.0)*(X - 5.0) + (Y - 5.0)*(Y - 5.0));
+	double X_C = SIDE_LENGTH_X/2.0;
+        double Y_C = SIDE_LENGTH_Y/2.0;
+        double R = sqrt((X - X_C)*(X - X_C) + (Y - Y_C)*(Y - Y_C));
 
         NEW_VERTEX.set_mass_density(RHO);                       // units kg/m^3
         NEW_VERTEX.set_x_velocity(V);                           // units m/s
@@ -315,6 +316,46 @@ VERTEX setup_vertex(double X, double Y){
 	double PRESSURE=K*pow(RHO,GAMMA);
 	
 		
+	NEW_VERTEX.set_mass_density(RHO);
+        NEW_VERTEX.set_x_velocity(X_VEL);
+        NEW_VERTEX.set_y_velocity(Y_VEL);
+        NEW_VERTEX.set_pressure(PRESSURE);
+#endif
+
+
+#ifdef RTY
+
+	double RHOL = 1.0, RHOH = 3.0;
+	double ETA=0.01, PHI;
+	/*
+	double RHO;
+	double PRESSURE;
+	double Y_VEL;
+	if (abs(Y-Y_HALF)>0.5*Y_HALF){
+		RHO=RHOH;
+		PRESSURE=RHOH*(abs(SIDE_LENGTH_Y-Y_HALF)-abs(Y-Y_HALF))*GRAV+1;}
+	else{
+		RHO=RHOL;
+		PRESSURE=RHOH*(abs(SIDE_LENGTH_Y-Y_HALF)-abs(0.5*Y_HALF-Y_HALF))*GRAV+RHOL*(abs(0.5*Y_HALF-Y_HALF)-abs(Y-Y_HALF))*GRAV+1;}
+	
+	double X_VEL=0.0000001;
+	Y_VEL=-0.01*(1.0+cos(2*M_PI*(X-0.5*SIDE_LENGTH_X)))*(1.0+cos(2*M_PI*(abs(Y-Y_HALF)-0.5*Y_HALF)))/4.0;
+	if ((Y-Y_HALF)<0){
+		Y_VEL=-Y_VEL;}
+	*/
+	///*
+	Y*=SIDE_LENGTH_Y;	
+	PHI=tanh((abs(Y-Y_HALF)-(0.5*Y_HALF+0.1*cos(2*M_PI*X*4)))/(sqrt(2)*ETA)); 
+	double PHI_INT=(sqrt(2)*ETA)*(log(cosh((abs(SIDE_LENGTH_Y-Y_HALF)-(0.5*Y_HALF+0.1*cos(2*M_PI*X*4)))/(sqrt(2)*ETA)))-(log(cosh((abs(Y-Y_HALF)-(0.5*Y_HALF+0.1*cos(2*M_PI*X*4)))/(sqrt(2)*ETA)))));
+	double RHO = RHOH*((1.0+PHI)/2.0)+RHOL*((1.0-PHI)/2.0);
+	double GRAV_X=0.0;
+	double PRESSURE=((((abs(SIDE_LENGTH_Y-Y_HALF)-abs(Y-Y_HALF))/2.0)*(RHOH+RHOL))+((RHOH+RHOL)/2.0)*PHI_INT)*GRAV +RHOH*GRAV*abs(SIDE_LENGTH_Y-Y_HALF);
+	double X_VEL=0.0000001;
+	double Y_VEL=0.0000001;
+	//*/
+	
+	
+	
 	NEW_VERTEX.set_mass_density(RHO);
         NEW_VERTEX.set_x_velocity(X_VEL);
         NEW_VERTEX.set_y_velocity(Y_VEL);

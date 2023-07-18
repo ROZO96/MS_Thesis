@@ -234,6 +234,8 @@ public:
                         N_Y[m]  = NORMAL[m][1];
 
                         H[m] = (U_N[3][m] + PRESSURE[m])/U_N[0][m];
+                        
+                        
 #ifdef DEBUG
                         std::cout << "Z =\t" << Z[0][m] << "\t" << Z[1][m] << "\t" << Z[2][m] << "\t" << Z[3][m] << std::endl;
 #endif
@@ -272,6 +274,11 @@ public:
 
                 PRESSURE_AVG = (PRESSURE[0] + PRESSURE[1] + PRESSURE[2])/3.0;
                 C = sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * (U*U + V*V)/2.0);
+#ifdef RTY
+		double Y_CENTER=(Y[0]+Y[1]+Y[2])/3.0;
+		C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*abs(Y_CENTER-Y_HALF)*GRAV);
+#endif
+                
                 //C=sqrt(GAMMA*PRESSURE_AVG/RHO);
                 if(C <= C_LIM){C = C_LIM;}
 
@@ -406,6 +413,18 @@ public:
                                 PHI[i] += INFLOW[i][0][m][2]*W_HAT[0][m] + INFLOW[i][1][m][2]*W_HAT[1][m] + INFLOW[i][2][m][2]*W_HAT[2][m] + INFLOW[i][3][m][2]*W_HAT[3][m];
                         }
                 }
+                
+#ifdef RTY
+				if ((Y_CENTER-Y_HALF)>0){
+				PHI[2] +=GRAV*(AREA/3.0)*RHO;
+				PHI[3] +=GRAV*(AREA/3.0)*RHO*V;
+				}
+				else{
+				PHI[2] -=GRAV*(AREA/3.0)*RHO;
+				PHI[3] -=GRAV*(AREA/3.0)*RHO*V;
+				}
+#endif
+
 
 #ifdef DEBUG
                 std::cout << "PHI =\t" << PHI[0] << "\t" << PHI[1] << "\t" << PHI[2] << "\t" << PHI[3] << std::endl;
@@ -815,6 +834,13 @@ public:
 
                 PRESSURE_AVG = (PRESSURE_HALF[0] + PRESSURE_HALF[1] + PRESSURE_HALF[2])/3.0;
                 C = sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * (U*U + V*V)/2.0);
+                
+#ifdef RTY
+		double Y_CENTER=(Y[0]+Y[1]+Y[2])/3.0;
+		C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*abs(Y_CENTER-Y_HALF)*GRAV);
+#endif
+      
+                
                 //C=sqrt(GAMMA*PRESSURE_AVG/RHO);
                 if(C <= C_LIM){C = C_LIM;}
 
@@ -956,6 +982,17 @@ public:
                                 PHI_HALF[i] += INFLOW[i][0][m][2]*W_HAT[0][m] + INFLOW[i][1][m][2]*W_HAT[1][m] + INFLOW[i][2][m][2]*W_HAT[2][m] + INFLOW[i][3][m][2]*W_HAT[3][m];
                         }
                 }
+
+#ifdef RTY
+				if ((Y_CENTER-Y_HALF)>0){
+				PHI_HALF[2] +=GRAV*(AREA/3.0)*RHO;
+				PHI_HALF[3] +=GRAV*(AREA/3.0)*RHO*V;
+				}
+				else{
+				PHI_HALF[2] -=GRAV*(AREA/3.0)*RHO;
+				PHI_HALF[3] -=GRAV*(AREA/3.0)*RHO*V;
+				}
+#endif
 
                 // Calculate spatial splitting for first half timestep
                 

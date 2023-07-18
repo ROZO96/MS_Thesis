@@ -8,12 +8,13 @@
 //#define SODX
 // #define SODY
 // #define SINEX
-#define SEDOV
+//#define SEDOV
 // #define GAUSSX
 // #define GAUSSY
 // #define UNIFORM
 // #define NOH
 // #define KHX
+#define RTY
 // #define KHY
 // #define KHXSMOOTH
 // #define KHYSMOOTH
@@ -31,7 +32,7 @@
 //-----------------------------------------
 /* set umber of snapshots */
 //-----------------------------------------
-#define N_SNAP 20
+#define N_SNAP 80
 
 //-----------------------------------------
 /* debug flag for debug output */
@@ -83,8 +84,8 @@ const int MAX_TBIN = pow(2,N_TBINS);
 
 
 //#define SU_SCHEME
-//#define LDA_SCHEME
-#define N_SCHEME
+#define LDA_SCHEME
+//#define N_SCHEME
 //#define BLENDED
 //#define Bx_SCHEME
 //-----------------------------------------
@@ -97,14 +98,14 @@ const int MAX_TBIN = pow(2,N_TBINS);
 // #define PARA_RES
 #define PARA_UP
 
-const double GRAV = 6.67e-11;
+//const double GRAV = 6.67e-11;
 const double MSOLAR = 1.989e+30;
 
 const double M_LIM = 0.0001;    // change for different tests
 const double E_LIM = 0.0001;
 const double C_LIM = 0.0001;
 
-const std::string OUT_DIR = "Mesh_case/Case_5/Bx_Scheme/";
+const std::string OUT_DIR = "Mesh_case/Case_1/LDA_Scheme/";
 const std::string LOG_DIR = OUT_DIR + "log.txt";
 
 // Sod Shock Tube (Varied in X)
@@ -143,7 +144,7 @@ const double SIDE_LENGTH_X = 2.0; // if altered, change setup.cpp as well
 const double SIDE_LENGTH_Y = 2.0;
 
 const double BLAST_E_TOT = 0.0;
-const double R_BLAST     = 0.05;
+const double R_BLAST     = 0.25;
 #endif
 
 // Gaussian pulse advection (x-direction)
@@ -257,6 +258,17 @@ const double T_TOT=10;
 const double GAMMA=5.0/3.0;
 const double SIDE_LENGTH_X = 10.0;
 const double SIDE_LENGTH_Y = 10.0;
+#endif
+
+
+#ifdef RTY
+const double CFL=0.9;
+const double T_TOT=4;
+const double GAMMA=5.0/3.0;
+const double SIDE_LENGTH_X = 1.0;
+const double SIDE_LENGTH_Y = 1.0;
+const double Y_HALF=0.5*SIDE_LENGTH_Y;
+const double GRAV=10;
 #endif
 
 

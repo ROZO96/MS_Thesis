@@ -115,6 +115,11 @@ public:
         void setup_specific_energy(){
                 double VEL_SQ_SUM = X_VELOCITY*X_VELOCITY + Y_VELOCITY*Y_VELOCITY;
                 SPECIFIC_ENERGY = PRESSURE/((GAMMA-1.0)*MASS_DENSITY) + VEL_SQ_SUM/2.0; // calculate specific energy
+#ifdef RTY
+		
+		SPECIFIC_ENERGY = PRESSURE/((GAMMA-1.0)*MASS_DENSITY) + VEL_SQ_SUM/2.0 + GRAV*abs(Y-Y_HALF) ; // calculate specific energy
+
+#endif
         }
 
         void calculate_dual(double CONTRIBUTION){DUAL = DUAL + CONTRIBUTION;}
@@ -166,12 +171,19 @@ public:
         void recalculate_pressure(){
                 double VEL_SQ_SUM = X_VELOCITY*X_VELOCITY + Y_VELOCITY*Y_VELOCITY;
                 PRESSURE = (GAMMA-1.0) * MASS_DENSITY * (SPECIFIC_ENERGY - VEL_SQ_SUM/2.0);
+ #ifdef RTY
+ 		PRESSURE =(GAMMA-1.0) * MASS_DENSITY * (SPECIFIC_ENERGY - VEL_SQ_SUM/2.0 - GRAV*abs(Y-Y_HALF));
+ #endif
                 if(PRESSURE < E_LIM){PRESSURE = E_LIM;}
         }
 
         void recalculate_pressure_half(){
                 double VEL_SQ_SUM = X_VELOCITY_HALF*X_VELOCITY_HALF + Y_VELOCITY_HALF*Y_VELOCITY_HALF;
                 PRESSURE_HALF = (GAMMA-1.0) * MASS_DENSITY_HALF * (SPECIFIC_ENERGY_HALF - VEL_SQ_SUM/2.0);
+ #ifdef RTY
+ 		PRESSURE =(GAMMA-1.0) * MASS_DENSITY_HALF * (SPECIFIC_ENERGY_HALF -  VEL_SQ_SUM/2.0 - GRAV*abs(Y-Y_HALF));
+ #endif
+                
                 if(PRESSURE_HALF < E_LIM){PRESSURE_HALF = E_LIM;}
         }
 

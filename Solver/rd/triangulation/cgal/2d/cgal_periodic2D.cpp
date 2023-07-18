@@ -22,7 +22,7 @@ typedef PDT::Covering_sheets                                Covering_sheets;
 // #define PERTUNIFORMOFFSETIC
 
 int main(){
-        float xmax=2,ymax=2;
+        float xmax=1,ymax=1;
         Iso_rectangle domain(0, 0, xmax, ymax); // The cube for the periodic domain
 
         // construction from a list of points :

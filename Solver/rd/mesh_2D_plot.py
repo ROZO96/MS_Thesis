@@ -30,17 +30,17 @@ print(triangles)
 
 fig, ax = plt.subplots()
 #triang=mtri.Triangulation(val_x, val_y, triangles)
-triang= mtri.Triangulation(val_x, val_y)
-print(triang.triangles)
-ax.triplot(val_x, val_y,triangles,'o-',markersize=0.1,linewidth=0.5)
-ax.triplot(triang,'o-',markersize=1,linewidth=0.5)
+#triang= mtri.Triangulation(val_x, val_y)
+#print(triang.triangles)
+ax.triplot(val_x*1/8.0, val_y,triangles,'o-',markersize=0.1,linewidth=0.5)
+#ax.triplot(triang,'o-',markersize=1,linewidth=0.5)
 """
 for i in range(n_triangles):
     ax.plot((val_x[int(triangles[i,0])],val_x[int(triangles[i,1])]),(val_y[int(triangles[i,0])],val_y[int(triangles[i,1])]),color='red')
     ax.plot((val_x[int(triangles[i,0])],val_x[int(triangles[i,2])]),(val_y[int(triangles[i,0])],val_y[int(triangles[i,2])]),color='red')
     ax.plot((val_x[int(triangles[i,1])],val_x[int(triangles[i,2])]),(val_xy[int(triangles[i,1])],val_y[int(triangles[i,2])]),color='red')
 """
-ax.set_xlim(float(xmin),float(xmax))
+ax.set_xlim(float(xmin),float(xmax)/8.0)
 ax.set_ylim(float(ymin),float(ymax))
 
 plt.show()

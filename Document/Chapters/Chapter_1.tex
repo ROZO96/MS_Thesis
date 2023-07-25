@@ -13,7 +13,20 @@ In many of the situations previously described, baryonic (ordinary) matter plays
 \end{gather}
 \end{subequations}
 
-Due to the non-linear nature of the systems of PDEs, it is only possible to find analytical solutions to them in very simple specific cases but to be able to solve Euler's equations in more general situations a computational/numerical approach is necessary. The numerical methods used to discretize hydrodynamics equations can be 
-classified into three main categories: Eulerian, Lagrangian, and Arbitrary Eulerian-Lagrangian (ALE). 
+Due to the non-linear nature of the systems of PDEs, it is only possible to find analytical solutions to them in very simple specific cases. To be able to solve Euler's equations in more general situations, a computational/numerical approach is necessary. The numerical methods used to discretize hydrodynamics equations can be classified into three main categories: Eulerian, Lagrangian, and Arbitrary Eulerian-Lagrangian (ALE).
+
+In the Eulerian techniques, gas dynamics are followed using Eulerian grids (i.e., discretizing the spatial domain), while in Lagrangian methods, the motion of gas particles is followed. The ALE technique is a hybrid that enables the following of gas dynamics in an Eulerian grid, whose nodes behave as particles allowing for movement and interaction among them; this method is also known as a moving mesh.
+
+Several astrophysical simulations have been carried out using either the Eulerian approach \cite{Bryan2014ENZO:ASTROPHYSICS, Stone2008Athena:MHD}, the Lagrangian approach \cite{Cabezon2017SPHYNX:Applications, Springel2021SimulatingCode,Springel2010SmoothedAstrophysics}, or the hybrid ALE approach \cite{Barlow2016ArbitraryFlows, Badwaik2023ArbitraryFlows, Springel2010EMesh, Murphy2008BETHEHydro:Simulations}. Even though Lagrangian SPH codes have been shown to perform better at resolving dense structures in astrophysical structure formation studies \cite{Price2010ATurbulence, Vazza2011AStructures}, they have also exhibited high dissipation regarding velocity fields. This is why these codes resolve and treat dynamical instabilities and mixing processes poorly or not at all, especially in cases where high-density gradients  or shocks are present \cite{Agertz2007FundamentalMethods,Vazza2011AStructures}.
+
+On the other hand, Eulerian codes have been shown to be able to solve dynamical stabilities such as Kelvin-Helmholtz and Rayleigh-Taylor, which are essential in many astrophysical situations such as gas stripping from galaxies moving through the ISM, star formation, and feedback processes \cite{Agertz2007FundamentalMethods}. This is the reason why many times the Eulerian approach is preferred for modeling hydrodynamics in astrophysical simulations. This work will be centered on solving gas dynamics using the Eulerian approach.
+
+The typical Eulerian codes used in astrophysics employ the Finite Volume (FV) approach to solve the gas dynamics within a spatial domain. This involves dividing the domain into numerous cells or elements and then solving the conservation equations in integral form over each cell volume. The fluid's state is stored at the center of each element, and its evolution with time is obtained by calculating the flux of quantities like momentum and mass and projecting them through the faces of the cell element.
+
+To compute the time-averaged fluxes, a Riemann problem needs to be solved at each of the cell's faces, and Riemann solvers are usually employed for this purpose \cite{Stone2008Athena:MHD}. There are various approximate \cite{LeVeque1992NumericalLaws, Toro2009RiemannDynamics} and exact Riemann solvers \cite{Godunov1959FiniteDynamics} available, which differ in complexity and computational cost. However, all of these solvers inherently break down the flux into a set of one-dimensional problems across the faces, a process known as \textit{dimensional splitting} or \textit{method of fractional steps} \cite{Toro2009RiemannDynamics, Yanenko1971TheSteps}.
+
+
+
+
 
 

@@ -194,7 +194,7 @@ VERTEX cgal_read_positions_line(std::ifstream &CGAL_FILE){
 
         CGAL_FILE >> X >> Y;
 
-        NEW_VERTEX = setup_vertex(X,Y);
+        NEW_VERTEX = setup_vertex(X*SIDE_LENGTH_X,Y*SIDE_LENGTH_Y);
 
         return NEW_VERTEX;
 }

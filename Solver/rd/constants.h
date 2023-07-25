@@ -263,12 +263,12 @@ const double SIDE_LENGTH_Y = 10.0;
 
 #ifdef RTY
 const double CFL=0.9;
-const double T_TOT=4;
+const double T_TOT=2;
 const double GAMMA=5.0/3.0;
-const double SIDE_LENGTH_X = 1.0;
-const double SIDE_LENGTH_Y = 1.0;
+const double SIDE_LENGTH_X = 0.25;
+const double SIDE_LENGTH_Y = 2.0;
 const double Y_HALF=0.5*SIDE_LENGTH_Y;
-const double GRAV=10;
+const double GRAV=1;
 #endif
 
 

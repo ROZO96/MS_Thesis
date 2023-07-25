@@ -276,7 +276,8 @@ public:
                 C = sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * (U*U + V*V)/2.0);
 #ifdef RTY
 		double Y_CENTER=(Y[0]+Y[1]+Y[2])/3.0;
-		C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*abs(Y_CENTER-Y_HALF)*GRAV);
+		//C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*Y_CENTER*GRAV);
+		//C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*abs(Y_CENTER-Y_HALF)*GRAV);
 #endif
                 
                 //C=sqrt(GAMMA*PRESSURE_AVG/RHO);
@@ -415,14 +416,21 @@ public:
                 }
                 
 #ifdef RTY
-				if ((Y_CENTER-Y_HALF)>0){
-				PHI[2] +=GRAV*(AREA/3.0)*RHO;
-				PHI[3] +=GRAV*(AREA/3.0)*RHO*V;
-				}
-				else{
+				/*	
 				PHI[2] -=GRAV*(AREA/3.0)*RHO;
 				PHI[3] -=GRAV*(AREA/3.0)*RHO*V;
+				*/
+				///*
+				
+				if ((Y_CENTER-Y_HALF)>0.0){
+				PHI[2] +=GRAV*(AREA/3.0)*(U_N[0][0]+U_N[0][1]+U_N[0][2]);
+				PHI[3] +=GRAV*(AREA/3.0)*(U_N[2][0]+U_N[2][1]+U_N[2][2]);
 				}
+				else if ((Y_CENTER-Y_HALF)<0.0) {
+				PHI[2] -=GRAV*(AREA/3.0)*(U_N[0][0]+U_N[0][1]+U_N[0][2]);
+				PHI[3] -=GRAV*(AREA/3.0)*(U_N[2][0]+U_N[2][1]+U_N[2][2]);
+				}
+				//*/
 #endif
 
 
@@ -837,7 +845,8 @@ public:
                 
 #ifdef RTY
 		double Y_CENTER=(Y[0]+Y[1]+Y[2])/3.0;
-		C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*abs(Y_CENTER-Y_HALF)*GRAV);
+		//C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*(Y_CENTER)*GRAV);
+		//C=sqrt((GAMMA-1.0) * H_AVG - (GAMMA-1.0) * ((U*U + V*V)/2.0) - (GAMMA-1.0)*abs(Y_CENTER-Y_HALF)*GRAV);
 #endif
       
                 
@@ -984,14 +993,21 @@ public:
                 }
 
 #ifdef RTY
-				if ((Y_CENTER-Y_HALF)>0){
-				PHI_HALF[2] +=GRAV*(AREA/3.0)*RHO;
-				PHI_HALF[3] +=GRAV*(AREA/3.0)*RHO*V;
+				///*
+				if ((Y_CENTER-Y_HALF)>0.0){
+				PHI_HALF[2] +=GRAV*(AREA/3.0)*(U_HALF[0][0]+U_HALF[0][1]+U_HALF[0][2]);
+				PHI_HALF[3] +=GRAV*(AREA/3.0)*(U_HALF[2][0]+U_HALF[2][1]+U_HALF[2][2]);
 				}
-				else{
+				else if ((Y_CENTER-Y_HALF)<0.0){
+				PHI_HALF[2] -=GRAV*(AREA/3.0)*(U_HALF[0][0]+U_HALF[0][1]+U_HALF[0][2]);
+				PHI_HALF[3] -=GRAV*(AREA/3.0)*(U_HALF[2][0]+U_HALF[2][1]+U_HALF[2][2]);
+				}
+				//*/
+				/*
 				PHI_HALF[2] -=GRAV*(AREA/3.0)*RHO;
 				PHI_HALF[3] -=GRAV*(AREA/3.0)*RHO*V;
-				}
+				*/
+				
 #endif
 
                 // Calculate spatial splitting for first half timestep
